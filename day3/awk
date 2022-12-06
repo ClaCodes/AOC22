@@ -1,0 +1,15 @@
+#!/usr/bin/awk -f
+BEGIN{for(n=0;n<256;n++)ord[sprintf("%c",n)]=n-38*(n<91)-96*(n>90)}
+{
+    for(i=1;i<=length($0)/2;i++){
+        for(j=length($0)/2+1;j<=length($0);j++){
+            #print "comp " substr($0,i,1) " " substr($0,j,1)
+            if( substr($0,i,1) == substr($0,j,1)){
+                s+= ord[substr($0,i,1)]
+                i=9999
+            }
+        }
+    }
+}
+END{print s}
+ 

@@ -1,0 +1,9 @@
+#!/usr/bin/awk -f
+{
+    for (i=1;i<=length($0);i++){
+        char=substr($0, i, 1)
+        a=b;b=c;c=d;d=char;
+        if (a && b && c && d && a!=b && a!=c && a!=d && b!=c && b!=d && c!=d) {print i;a=0;b=0;c=0;d=0; i=99999}
+        #print " " a " " b " " c " " d
+        }
+}
