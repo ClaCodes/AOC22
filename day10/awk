@@ -18,5 +18,19 @@ END{
         sum+=x[i]*(i+1)
         #print i " " x[i] " " x[i]*(i+1)
     }
-    print sum
+    print "" sum
+    i=0
+    for(line=0;line<6;line++){
+        for(c=0;c<40;c++){
+            relpos = c-x[i]+1 
+            #print "drawing line " line " c " c "   cycle " i "   sprite " x[i] " relpos " relpos
+            if(relpos>=0 && relpos<3){
+                printf "#"
+            } else {
+                printf "."
+            }
+            i++
+        }
+        print ""
+    }
 }

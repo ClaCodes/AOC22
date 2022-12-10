@@ -46,7 +46,13 @@ END{
     for(d in size){
         #printf d "            "
         #print size[d]
+        tot+=size[d]
     }
+    #print "root" tot
+    #print "need" 30000000
+    tofree =30000000-(70000000-tot)
+    smallestdiff=tot
+    #print "please free"tofree 
     #print "maxd " maxd
     for(depth=maxd-1;depth>=0;depth--){
         #print "depth" depth "   length dirs" length(dirs[depth])
@@ -60,6 +66,10 @@ END{
             subtot+=sizz
         }
         if(subtot<=100000)solution+=subtot
+        if(subtot-tofree>0 && subtot-tofree<smallestdiff){
+            smallestdiff=subtot-tofree
+            solution2=subtot
+        }
         size[dirs[depth][i]]=subtot
         #printf   " SIZE |"subtot"|"
         #print ""
@@ -70,5 +80,6 @@ END{
             #print "depth:" d " cnt:" cnt "  dir:" dirs[d][cnt]
         }
     }
-    print "SOLUTION  " solution
+    print solution
+    print solution2
 }

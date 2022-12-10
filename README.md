@@ -2,17 +2,13 @@
 Peformance staistic using `perf stat` averaged over 10 runs.
 | dir | file | task-clock |
 |----:|---------------------:|------------:|
-|  day01  |  awk  |     3.28 ms |
-|  day02  |  awk  |     5.29 ms |
-|  day03  |  awk  |    16.71 ms |
-|  day03  |  awk2  |    27.50 ms |
-|  day04  |  awk  |     8.50 ms |
-|  day05  |  awk  |     8.41 ms |
-|  day06  |  awk  |     3.10 ms |
-|  day06  |  awk2  |    75.76 ms |
-|  day07  |  awk2  |     7.05 ms |
-|  day08  |  awk2  |    28.40 ms |
-|  day08  |  awk3  |    59.71 ms |
-|  day09  |  awk  |    19.03 ms |
-|  day09  |  awk2  |    98.71 ms |
-|  day10  |  awk2  |     2.71 ms |
+|  day01  |  awk  |     3.80 ms |
+|  day02  |  awk  |     5.35 ms |
+|  day03  |  awk  |    36.66 ms |
+|  day04  |  awk  |     5.97 ms |
+|  day05  |  awk  |    10.31 ms |
+|  day06  |  awk  |    56.37 ms |
+|  day07  |  awk  |     6.85 ms |
+|  day08  |  awk  |    52.13 ms |
+|  day09  |  awk  |    75.24 ms |
+|  day10  |  awk  |     2.38 ms |
