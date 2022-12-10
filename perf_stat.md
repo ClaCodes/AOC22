@@ -1,7 +1,3 @@
-# AOC22
-Peformance staistic using `perf stat` averaged over 10 runs.
-| dir | file | task-clock |
-|----:|---------------------:|------------:|
 |  day01  |  awk  |     3.28 ms |
 |  day02  |  awk  |     5.29 ms |
 |  day03  |  awk  |    16.71 ms |
