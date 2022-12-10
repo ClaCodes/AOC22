@@ -1,0 +1,20 @@
+# started on Wed Dec  7 22:27:22 2022
+
+
+ Performance counter stats for './day7/awk ./day7/input':
+
+             10.32 msec task-clock                #    0.970 CPUs utilized          
+                 0      context-switches          #    0.000 K/sec                  
+                 0      cpu-migrations            #    0.000 K/sec                  
+               357      page-faults               #    0.035 M/sec                  
+        24’164’348      cycles                    #    2.342 GHz                    
+        24’808’100      instructions              #    1.03  insn per cycle         
+         5’278’971      branches                  #  511.527 M/sec                  
+           284’769      branch-misses             #    5.39% of all branches        
+
+       0.010640196 seconds time elapsed
+
+       0.007125000 seconds user
+       0.003562000 seconds sys
+
+

@@ -1,0 +1,50 @@
+#!/usr/bin/awk -f
+{
+    line++
+    len=length($0)
+    for(i=1;i<=len;i++){
+        height[line-1][i-1]=substr($0,i,1)
+    }
+}
+END{
+    for(i=0;i<len;i++){
+        h=-1
+        for(l=0;l<line;l++){
+            if(height[l][i]>h){
+                h=height[l][i]
+                vt[l][i]=1
+            }
+        }
+    }
+    for(i=0;i<len;i++){
+        h=-1
+        for(l=line-1;l>=0;l--){
+            if(height[l][i]>h){
+                h=height[l][i]
+                vb[l][i]=1
+            }
+        }
+    }
+    for(l=0;l<line;l++){
+        h=-1
+        for(i=0;i<len;i++){
+            if(height[l][i]>h){
+                h=height[l][i]
+                vl[l][i]=1
+            }
+        }
+    }
+    for(l=0;l<line;l++){
+        h=-1
+        for(i=len-1;i>=0;i--){
+            if(height[l][i]>h){
+                h=height[l][i]
+                vr[l][i]=1
+            }
+            if(vr[l][i]==1 || vl[l][i]==1 || vt[l][i]==1 || vb[l][i]==1){
+                somewhere++
+            }
+        }
+    }
+    print somewhere
+}
