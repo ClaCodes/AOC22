@@ -1,0 +1,19 @@
+#!/usr/bin/awk -f
+!/^$/ { s += $0 }
+
+/^$/ {
+    if (s > a) {
+        c = b
+        b = a
+        a = s
+    }
+    else if (s > b) {
+        c = b
+        b = s
+    }
+    else if (s > c) { c = s }
+
+    s = 0
+}
+
+END { print a "\n" a + b + c }
