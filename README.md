@@ -4,3 +4,4 @@ Peformance staistic using `perf stat` averaged over 10 runs (only rough estimate
 | day | task-clock |
 |----:|-----------:|
 | 1 |     2.38 ms |
+| 2 |     3.30 ms |
