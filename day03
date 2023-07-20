@@ -1,0 +1,42 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = ""
+    line = 0
+
+    for (n = 0; n < 256; n++) {
+        ord[sprintf("%c", n)] = n - 38 * (n < 91) - 96 * (n > 90)
+    }
+}
+
+{
+    delete charsA
+
+    if (line == 0) {
+        delete charsC
+        delete charsB
+    }
+
+    for (i = 1; i <= NF; i++) {
+        if (i <= length($0) / 2) { charsA[$i] = 1 }
+        else {
+            if (charsA[$i] == 1) { t += ord[$i] }
+
+            charsA[$i] = 0
+        }
+
+        if (line == 0) { charsB[$i] = 1 }
+        else if (line == 1) {
+            if (charsB[$i] == 1) { charsC[$i] = 1 }
+        }
+        else {
+            if (charsC[$i] == 1) { s += ord[$i] }
+
+            charsC[$i] = 0
+        }
+    }
+
+    line++
+    line %= 3
+}
+
+END { print t "\n" s }
