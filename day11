@@ -1,0 +1,201 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = "[ ,:,,]"
+    max_nr = 1
+}
+
+/Monkey/ { monkey = $2 }
+
+/Starting/ {
+    for (i = 6; i <= NF; i += 2) {
+        starting_items[monkey][starting_item_cnt[monkey]++] = $i
+    }
+}
+
+/Operation/ {
+    operand[monkey] = $9
+
+    if ($9 == "old") { operation_type[monkey] = "square" }
+    else if ($8 == "*") { operation_type[monkey] = "multiply" }
+    else if ($8 == "+") { operation_type[monkey] = "add" }
+}
+
+/Test/ {
+    div_test[monkey] = $7
+    max_nr *= $7
+}
+
+/If true/ { throw_if_true[monkey] = $11 }
+
+/If false/ { throw_if_false[monkey] = $11 }
+
+function print_items() {
+    for (m in items) {
+        printf("Monkey " m " has " item_cnt[m] " items: ")
+
+        for (it in items[m]) { printf(items[m][it] "|") }
+
+        print ""
+    }
+}
+
+function print_monkeys() {
+    for (m in items) {
+        print\
+            "Monkey " m " does a " operation_type[m] " with " operand[m]\
+                " and tests "\
+                div_test[m]\
+                " if true throws to "\
+                throw_if_true[m]\
+                " if false throws to "\
+                throw_if_false[m]
+    }
+}
+
+function print_inspected() {
+    a = 0
+    b = 0
+
+    for (m in inspected) {
+        if (inspected[m] > a) {
+            b = a
+            a = inspected[m]
+        }
+        else if (inspected[m] > b) { b = inspected[m] }
+
+        if (verbose_inspect == 1)
+            print "Monkey " m " inspected items " inspected[m] " times."
+    }
+
+    if (verbose_inspect == 1) print "monkey business"
+
+    print a * b
+}
+
+function do_round(divider) {
+    verbose = 0
+
+    for (m in items) {
+        if (verbose == 1) print "Monkey " m ":"
+
+        for (it in items[m]) {
+            inspected[m]++
+
+            if (verbose == 1)
+                print\
+                    "  Monkey inspects an item with a worry level of "\
+                        items[m][it]\
+                        "."
+
+            if (operation_type[m] == "multiply") {
+                new = items[m][it] * operand[m]
+
+                if (verbose == 1)
+                    print\
+                        "    Worry level is multiplied by " operand[m] " to "\
+                            new\
+                            "."
+            }
+            else if (operation_type[m] == "add") {
+                new = items[m][it] + operand[m]
+
+                if (verbose == 1)
+                    print\
+                        "    Worry level increases by " operand[m] " to " new\
+                            "."
+            }
+            else {
+                new = items[m][it] * items[m][it]
+
+                if (verbose == 1)
+                    print "    Worry level is multiplied by itself to " new "."
+            }
+
+            new2 = int(new / divider)
+            new2 = new2 % max_nr
+
+            if (verbose == 1)
+                print\
+                    "    Monkey gets bored with item. Worry level is still "\
+                        new2\
+                        "."
+
+            if (new2 % div_test[m] == 0) {
+                if (verbose == 1)
+                    print\
+                        "    Current worry level is divisible by " div_test[m]\
+                            "."
+
+                if (verbose == 1)
+                    print\
+                        "    Item with worry level " new2\
+                            " is thrown to monkey "\
+                            throw_if_true[m]\
+                            "."
+
+                items[throw_if_true[m]][item_cnt[throw_if_true[m]]++] = new2
+                delete items[m][it]
+            }
+            else {
+                if (verbose == 1)
+                    print\
+                        "    Current worry level is not divisible by "\
+                            div_test[m]\
+                            "."
+
+                if (verbose == 1)
+                    print\
+                        "    Item with worry level " new2\
+                            " is thrown to monkey "\
+                            throw_if_false[m]\
+                            "."
+
+                items[throw_if_false[m]][item_cnt[throw_if_false[m]]++] = new2
+                delete items[m][it]
+            }
+        }
+
+        item_cnt[m] = 0
+    }
+}
+
+function simulate(rounds, divider) {
+    delete items
+    delete item_cnt
+    delete inspected
+
+    for (m in starting_items) {
+        for (c in starting_items[m]) { items[m][c] = starting_items[m][c] }
+
+        item_cnt[m] = starting_item_cnt[m]
+    }
+
+    for (round = 1; round <= rounds; round++) {
+        do_round(divider)
+
+        if (\
+            verbose_inspect == 1 &&
+            (round == 1 || round == 20 || round % 1000 == 0)\
+        ) {
+            print\
+                "After round " round\
+                    ", the monkeys are holding items with these worry levels:"
+
+            print_inspected()
+        }
+    }
+}
+
+END {
+    verbose_inspect = 0
+
+    if (verbose_inspect == 1) {
+        print_monkeys()
+        print_items()
+    }
+
+    simulate(20, 3)
+    print_inspected()
+    simulate(10000, 1)
+    print_inspected()
+}
