@@ -1,0 +1,98 @@
+#!/usr/bin/awk -f
+/\$/ {
+    if ($2 == "cd") {
+        #print "CD " $0
+        if ($3 == "/") {
+            d = 0
+            cwd[d] = "/"
+        }
+        else if ($3 == "..") { d-- }
+        else {
+            d++
+
+            if (d > maxd) maxd = d
+
+            cwd[d] = $3
+        }
+
+        prinf cwd[0]
+
+        for (i = 1; i <= d; i++) {
+            #printf "/" cwd[i]
+        }
+
+        #print ""
+    }
+    else if ($2 == "ls") {
+        #print "COMMAND" $0
+    }
+    else {
+        #print "UNKNOWN COMMAND" $0
+    }
+}
+
+!/\$/ {
+    s = "/"
+
+    for (i = 1; i <= d; i++) { s = s cwd[i] "/" }
+
+    children_count[s]++
+    children[s][children_count[s]] = s $2
+
+    if ($1 != "dir") { size[s $2] = $1 }
+    else {
+        dircnt[d]++
+        dirs[d][dircnt[d]] = s $2
+    }
+}
+
+END {
+    solution = 0
+    #print ""
+    for (d in size) {
+        #printf d "            "
+        #print size[d]
+        tot += size[d]
+    }
+
+    #print "root" tot
+    #print "need" 30000000
+    tofree = 30000000 - (70000000 - tot)
+    smallestdiff = tot
+    #print "please free"tofree
+    #print "maxd " maxd
+    for (depth = maxd - 1; depth >= 0; depth--) {
+        #print "depth" depth "   length dirs" length(dirs[depth])
+        for (i = 1; i <= length(dirs[depth]); i++) {
+            #print "dirs  " dirs[depth][i]"/" "    length children" length(children[dirs[depth][i]"/"])
+            subtot = 0
+
+            for (j = 0; j < length(children[dirs[depth][i] "/"]); j++) {
+                #printf children[dirs[depth][i]"/"][j] " "
+                sizz = size[children[dirs[depth][i] "/"][j]]
+                #printf "size |" sizz "|"
+                subtot += sizz
+            }
+
+            if (subtot <= 100000) solution += subtot
+
+            if (subtot - tofree > 0 && subtot - tofree < smallestdiff) {
+                smallestdiff = subtot - tofree
+                solution2 = subtot
+            }
+
+            size[dirs[depth][i]] = subtot
+            #printf   " SIZE |"subtot"|"
+            #print ""
+        }
+    }
+
+    for (d in dirs) {
+        for (cnt in dirs[d]) {
+            #print "depth:" d " cnt:" cnt "  dir:" dirs[d][cnt]
+        }
+    }
+
+    print solution
+    print solution2
+}
