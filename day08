@@ -1,0 +1,102 @@
+#!/usr/bin/awk -f
+BEGIN { FS = "" }
+
+{
+    line++
+
+    for (i = 1; i <= NF; i++) { height[line - 1][i - 1] = $i }
+
+    len = NF
+}
+
+END {
+    #print "visibility from top"
+    for (i = 0; i < len; i++) {
+        ht = -1
+        hb = -1
+
+        for (l = 0; l < line; l++) {
+            if (height[l][i] > ht) {
+                ht = height[l][i]
+                vt[l][i] = 1
+                #print l " " i
+            }
+
+            if (height[line - l - 1][i] > hb) {
+                hb = height[line - l - 1][i]
+                vb[line - l - 1][i] = 1
+                #print l " " i
+            }
+        }
+    }
+
+    #print "visibility from left"
+    for (i = 0; i < line; i++) {
+        hl = -1
+        hr = -1
+
+        for (l = 0; l < len; l++) {
+            if (height[i][l] > hl) {
+                hl = height[i][l]
+                vl[i][l] = 1
+                #print l " " i
+            }
+            if (height[i][len-l-1] > hr) {
+                hr = height[i][len-l-1]
+                vr[i][len-l-1] = 1
+                #print l " " i
+            }
+        }
+    }
+
+    for (l = 0; l < line; l++) {
+        for (i = len - 1; i >= 0; i--) {
+            if (\
+                vr[l][i] == 1 || vl[l][i] == 1 || vt[l][i] == 1 ||
+                vb[l][i] == 1\
+            ) { somewhere++ }
+        }
+    }
+
+    print somewhere
+    high_score = 0
+
+    for (l = 0; l < line; l++) {
+        for (i = 0; i < len; i++) {
+            a = 0
+            b = 0
+            c = 0
+            d = 0
+            #print "finding scenic score for coordinate " l " " i
+            for (lv = l - 1; lv >= 0; lv--) {
+                a++
+                #print "above " lv " " i " view ok " a
+                if (height[lv][i] >= height[l][i]) { lv = -1 }
+            }
+
+            for (lv = l + 1; lv < line; lv++) {
+                b++
+                #print "below " lv " " i " view ok " a
+                if (height[lv][i] >= height[l][i]) { lv = 99999 }
+            }
+
+            for (iv = i - 1; iv >= 0; iv--) {
+                c++
+                #print "left " lv " " i " view ok " a
+                if (height[l][iv] >= height[l][i]) { iv = -i }
+            }
+
+            for (iv = i + 1; iv < len; iv++) {
+                d++
+                #print "right " lv " " i " view ok " a
+                if (height[l][iv] >= height[l][i]) { iv = 99999 }
+            }
+
+            score = a * b * c * d
+
+            if (score > high_score) { high_score = score }
+        }
+    }
+
+    print high_score
+}
