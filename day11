@@ -1,0 +1,92 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = "[ ,:,,]"
+    max_nr = 1
+    MULTIPLY = 0
+    SQUARE = 1
+    ADD = 2
+}
+
+/Monkey/ { monkey = $2 }
+
+/Starting/ {
+    for (i = 6; i <= NF; i += 2) {
+        starting_items[monkey][starting_item_cnt[monkey]++] = $i
+    }
+}
+
+/Operation/ {
+    operand[monkey] = $9
+
+    if ($9 == "old") { operation_type[monkey] = SQUARE }
+    else if ($8 == "*") { operation_type[monkey] = MULTIPLY }
+    else if ($8 == "+") { operation_type[monkey] = ADD }
+}
+
+/Test/ {
+    div_test[monkey] = $7
+    max_nr *= $7
+}
+
+/If true/ { throw_if_true[monkey] = $11 }
+
+/If false/ { throw_if_false[monkey] = $11 }
+
+function print_inspected() {
+    a = 0
+    b = 0
+
+    for (m in inspected) {
+        if (inspected[m] > a) {
+            b = a
+            a = inspected[m]
+        }
+        else if (inspected[m] > b) { b = inspected[m] }
+
+    }
+    print a * b
+}
+
+
+function simulate(rounds, divider) {
+    delete items
+    delete item_cnt
+    delete inspected
+
+    for (m in starting_items) {
+        for (c in starting_items[m]) { items[m][c] = starting_items[m][c] }
+
+        item_cnt[m] = starting_item_cnt[m]
+    }
+
+    for (round = 1; round <= rounds; round++) {
+        for (m in items) {
+            for (it = 0; it < item_cnt[m]; it++) {
+                inspected[m]++
+
+                if (operation_type[m] == MULTIPLY) {
+                    new = int((items[m][it] * operand[m]) / divider) % max_nr
+                } else if (operation_type[m] == ADD) {
+                    new = int((items[m][it] + operand[m]) / divider) % max_nr
+                } else {
+                    new = int((items[m][it] * items[m][it]) / divider) % max_nr
+                }
+
+                if (new % div_test[m] == 0) {
+                    next_monkey = throw_if_true[m]
+                } else {
+                    next_monkey = throw_if_false[m]
+                }
+                items[next_monkey][item_cnt[next_monkey]++] = new
+            }
+            item_cnt[m] = 0
+        }
+    }
+}
+
+END {
+    simulate(20, 3)
+    print_inspected()
+    simulate(10000, 1)
+    print_inspected()
+}
