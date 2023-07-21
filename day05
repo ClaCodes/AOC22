@@ -1,0 +1,40 @@
+#!/usr/bin/awk -f
+BEGIN {}
+
+/.*\[/ {
+    for (i = 0; i < 88; i++) {
+        n = substr($0, 2 + 4 * i, 1)
+
+        if (n && n != " ") {
+            s[i] = n s[i]
+            t[i] = n t[i]
+        }
+    }
+}
+
+/move/ {
+    a = $4 - 1
+    b = $6 - 1
+    n = substr(t[a], length(t[a]) - $2 + 1, $2)
+    t[a] = substr(t[a], 1, length(t[a]) - $2)
+    t[b] = t[b] n
+
+    for (i = 0; i < $2; i++) {
+        m = substr(s[a], length(s[a]), 1)
+        s[a] = substr(s[a], 1, length(s[a]) - 1)
+        s[b] = s[b] m
+        #print "A move " m " from " a " to " b " s["a"]="s[a]"  s["b"]="s[b]
+    }
+
+    #print "B move " n " from " a " to " b " t["a"]="t[a]"  t["b"]="t[b]
+}
+
+END {
+    for (k in s) { printf(substr(s[k], length(s[k]), 1)) }
+
+    print ""
+
+    for (k in t) { printf(substr(t[k], length(t[k]), 1)) }
+
+    print ""
+}

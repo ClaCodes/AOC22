@@ -4,6 +4,7 @@
     perf stat --repeat=10 -o ./temp_stat --append ./day02 ./real_input/day02;
     perf stat --repeat=10 -o ./temp_stat --append ./day03 ./real_input/day03;
     perf stat --repeat=10 -o ./temp_stat --append ./day04 ./real_input/day04;
+    perf stat --repeat=10 -o ./temp_stat --append ./day05 ./real_input/day05;
 } >> /dev/nul
 
 # Assumes performance stats were collected in order
