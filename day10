@@ -1,0 +1,40 @@
+#!/usr/bin/awk -f
+BEGIN {
+    cycle = 0
+    x[0] = 1
+}
+
+/noop/ {
+    cycle++
+    x[cycle] = x[cycle - 1]
+}
+
+/addx/ {
+    cycle++
+    x[cycle] = x[cycle - 1]
+    cycle++
+    x[cycle] = x[cycle - 1] + $2
+}
+
+END {
+    for (i = 19; i <= 219; i += 40) {
+        sum += x[i] * (i + 1)
+        #print i " " x[i] " " x[i]*(i+1)
+    }
+
+    print "" sum
+    i = 0
+
+    for (line = 0; line < 6; line++) {
+        for (c = 0; c < 40; c++) {
+            relpos = c - x[i] + 1
+            #print "drawing line " line " c " c "   cycle " i "   sprite " x[i] " relpos " relpos
+            if (relpos >= 0 && relpos < 3) { printf("#") }
+            else { printf(".") }
+
+            i++
+        }
+
+        print ""
+    }
+}
