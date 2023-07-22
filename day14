@@ -40,6 +40,7 @@ function add_wall(xS, yS, xE, yE) {
             #print "adding cave element at " xS "," y
 
             cave[y][xS] = "#"
+            caveB[y][xS] = "#"
         }
     }
     else if (yS == yE) {
@@ -64,6 +65,7 @@ function add_wall(xS, yS, xE, yE) {
             #print "adding cave element at " x "," yS
 
             cave[yS][x] = "#"
+            caveB[yS][x] = "#"
         }
     }
     else {
@@ -88,7 +90,15 @@ function fill_air() {
     }
 }
 
-function add_start() { cave[0][500] = "+" }
+function fill_airB() {
+    # print "adding air in box " xBorderL "," yBorderL " to " xBorderH "," yBorderH
+    for (y = yBorderL; y <= yBorderH; y++) {
+        for (x = xBorderL; x <= xBorderH; x++) {
+            if (!(y in caveB)) { caveB[y][x] = "." }
+            else if (!(x in caveB[y])) { caveB[y][x] = "." }
+        }
+    }
+}
 
 function simulate_corn() {
     xC = 500
@@ -113,6 +123,31 @@ function simulate_corn() {
     return 0
 }
 
+function simulate_cornB() {
+    xC = 500
+    yC = 0
+
+    while (xC <= xBorderH && xC >= xBorderL && yC <= yBorderH &&
+    yC >= yBorderL) {
+        if (caveB[yC + 1][xC] == ".") { yC += 1 }
+        else if (caveB[yC + 1][xC - 1] == ".") {
+            yC += 1
+            xC -= 1
+        }
+        else if (caveB[yC + 1][xC + 1] == ".") {
+            yC += 1
+            xC += 1
+        }
+        else if (caveB[yC][xC] == ".") {
+            caveB[yC][xC] = "o"
+            return 1
+        }
+        else { return 0 }
+    }
+
+    return 0
+}
+
 function simulate_sand() {
     active_corn = 1
 
@@ -125,8 +160,32 @@ function simulate_sand() {
     print active_corn - 1
 }
 
+function simulate_sandB() {
+    active_corn = 1
+
+    while (simulate_cornB() == 1) {
+        #print "\nactive corn " active_corn
+        #draw_cave()
+        active_corn++
+    }
+
+    print active_corn - 1
+}
+
+function add_floor() {
+    add_wall(\
+        xBorderL - yBorderH - 5,
+        yBorderH + 2,
+        xBorderH + yBorderH + 5,
+        yBorderH + 2\
+    )
+}
+
 END {
-    add_start()
     fill_air()
     simulate_sand()
+
+    add_floor()
+    fill_airB()
+    simulate_sandB()
 }
