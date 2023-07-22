@@ -1,0 +1,132 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = "[ ,]"
+
+    xBorderL = 500
+    xBorderH = 500
+    yBorderL = 0
+    yBorderH = 0
+}
+
+function draw_cave() {
+    for (i in cave) {
+        for (j in cave[i]) { printf(cave[i][j]) }
+
+        print ""
+    }
+}
+
+function add_wall(xS, yS, xE, yE) {
+    #print "draw line from " xS "," yS " to " xE "," yE
+    if (xS == xE) {
+        if (yS < yE) {
+            yL = yS
+            yH = yE
+        }
+        else {
+            yL = yE
+            yH = yS
+        }
+
+        if (yL < yBorderL) { yBorderL = yL }
+
+        if (yH > yBorderH) { yBorderH = yH }
+
+        if (xS < xBorderL) { xBorderL = xS }
+
+        if (xS > xBorderH) { xBorderH = xS }
+
+        for (y = yL; y <= yH; y++) {
+            #print "adding cave element at " xS "," y
+
+            cave[y][xS] = "#"
+        }
+    }
+    else if (yS == yE) {
+        if (xS < xE) {
+            xL = xS
+            xH = xE
+        }
+        else {
+            xL = xE
+            xH = xS
+        }
+
+        if (xL < xBorderL) { xBorderL = xL }
+
+        if (xH > xBorderH) { xBorderH = xH }
+
+        if (yS < yBorderL) { yBorderL = yS }
+
+        if (yS > yBorderH) { yBorderH = yS }
+
+        for (x = xL; x <= xH; x++) {
+            #print "adding cave element at " x "," yS
+
+            cave[yS][x] = "#"
+        }
+    }
+    else {
+        print "PARSE ERROR, ASSERT INPUT IS ALWAYS ALIGNED WITH X OR Y AXIS"
+    }
+}
+
+{
+    for (i = 5; i <= NF; i += 3) {
+        add_wall($(i - 4), $(i - 3), $(i - 1), $i)
+        field = $(i + 1)
+    }
+}
+
+function fill_air() {
+    # print "adding air in box " xBorderL "," yBorderL " to " xBorderH "," yBorderH
+    for (y = yBorderL; y <= yBorderH; y++) {
+        for (x = xBorderL; x <= xBorderH; x++) {
+            if (!(y in cave)) { cave[y][x] = "." }
+            else if (!(x in cave[y])) { cave[y][x] = "." }
+        }
+    }
+}
+
+function add_start() { cave[0][500] = "+" }
+
+function simulate_corn() {
+    xC = 500
+    yC = 1
+
+    while (xC < xBorderH && xC > xBorderL && yC < yBorderH && yC > yBorderL) {
+        if (cave[yC + 1][xC] == ".") { yC += 1 }
+        else if (cave[yC + 1][xC - 1] == ".") {
+            yC += 1
+            xC -= 1
+        }
+        else if (cave[yC + 1][xC + 1] == ".") {
+            yC += 1
+            xC += 1
+        }
+        else {
+            cave[yC][xC] = "o"
+            return 1
+        }
+    }
+
+    return 0
+}
+
+function simulate_sand() {
+    active_corn = 1
+
+    while (simulate_corn() == 1) {
+        #print "\nactive corn " active_corn
+        #draw_cave()
+        active_corn++
+    }
+
+    print active_corn - 1
+}
+
+END {
+    add_start()
+    fill_air()
+    simulate_sand()
+}
