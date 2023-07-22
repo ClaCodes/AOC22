@@ -15,3 +15,4 @@ Peformance staistic using `perf stat` averaged over 10 runs (only rough estimate
 | 10 |     2.33 ms |
 | 11 |   595.31 ms |
 | 12 |    35.82 ms |
+| 13 |    31.64 ms |

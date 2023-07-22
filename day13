@@ -5,6 +5,12 @@ BEGIN {
     cwd[0] = "/"
     depth = 1
     verbose = 0
+    D2["/0"] = "l"
+    D2["/0/0"] = "l"
+    D2["/0/0/0"] = 2
+    D6["/0"] = "l"
+    D6["/0/0"] = "l"
+    D6["/0/0/0"] = 6
 }
 
 function cwdstr() {
@@ -62,10 +68,43 @@ function cwdstr() {
 
     if (verbose == 1) { print $0 }
 
-    for (i in el) {
-        if (line == 0) { A[i] = el[i] }
+    delete A
+    delete B
 
-        if (line == 1) { B[i] = el[i] }
+    for (i in el) { A[i] = el[i] }
+
+    for (i in D2) { B[i] = D2[i] }
+
+    order = right_order("")
+
+    if (order < 0) {
+        if (verbose == 1) print "bigger then divider 2"
+    }
+    else if (order > 0) {
+        if (verbose == 1) print "less then divider 2"
+
+        solution2++
+    }
+    else { print "ERROR" }
+
+    for (i in D6) { B[i] = D6[i] }
+
+    order = right_order("")
+
+    if (order < 0) {
+        if (verbose == 1) print "bigger then divider 6"
+    }
+    else if (order > 0) {
+        if (verbose == 1) print "less then divider 6"
+
+        solution6++
+    }
+    else { print "ERROR" }
+
+    for (i in el) {
+        if (line == 0) { IA[i] = el[i] }
+
+        if (line == 1) { IB[i] = el[i] }
     }
 
     line++
@@ -143,6 +182,12 @@ function right_order(base) {
 
 /^$/ {
     line = 0
+    delete A
+    delete B
+
+    for (i in IA) { A[i] = IA[i] }
+
+    for (i in IB) { B[i] = IB[i] }
 
     pair++
     order = right_order("")
@@ -163,8 +208,15 @@ function right_order(base) {
     #
     #    for (i in B) { print "B   " i ":" B[i] }
 
-    delete A
-    delete B
+    delete IA
+    delete IB
 }
 
-END { print solution }
+END {
+    if (verbose == 1) {
+        print solution2 + 1 "    " solution6 + 2 " sol "
+
+        (solution2 + 1) * (solution6 + 2)
+    }
+    else { print solution "\n" (solution2 + 1) * (solution6 + 2) }
+}
