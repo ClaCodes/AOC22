@@ -1,0 +1,88 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = ""
+    line = 0
+    verbose = 0
+
+    for (n = 0; n < 256; n++) { ord[sprintf("%c", n)] = n - 97 }
+}
+
+{
+    len = length($0)
+
+    for (i = 0; i < NF; i++) {
+        height[line][i] = ord[$(i + 1)]
+        distance[line][i] = 999999999999999
+
+        if ($(i + 1) == "S") {
+            height[line][i] = 0
+            searchx[0] = line
+            searchy[0] = i
+            distance[line][i] = 0
+        }
+
+        if ($(i + 1) == "E") {
+            height[line][i] = 25
+            goalx = i
+            goaly = line
+        }
+    }
+
+    line++
+}
+
+function consider(x, y, nextx, nexty) {
+    #consider only height increase
+    if (\
+        nextx in distance && nexty in distance[nextx] &&
+        distance[x][y] + 1 < distance[nextx][nexty] &&
+        height[x][y] + 1 >= height[nextx][nexty]\
+    ) {
+        distance[nextx][nexty] = distance[x][y] + 1
+        searchx[searchable] = nextx
+        searchy[searchable] = nexty
+        searchable++
+    }
+}
+
+END {
+    if (verbose == 1) {
+        print "search x 0   " searchx[0] "|search y 0   " searchy[0]
+        print "goal x  " goalx "|goal y  " goaly
+    }
+
+    to_search = 0
+    searchable = 1
+
+    while (to_search < searchable) {
+        x = searchx[to_search]
+        y = searchy[to_search]
+
+        if (verbose == 1) {
+            print "analysing point " x " " y " with distance " distance[x][y]
+        }
+
+        consider(x, y, x + 1, y)
+        consider(x, y, x - 1, y)
+        consider(x, y, x, y + 1)
+        consider(x, y, x, y - 1)
+
+        to_search++
+    }
+
+    if (verbose == 1) {
+        for (x in distance) {
+            for (y in distance[x]) {
+                #sprintf("(%d,%d)%s:%2d ", x, y, height[x][y], distance[x][y])\,
+                printf(sprintf("%4d", distance[x][y]))
+            }
+
+            print ""
+        }
+
+        print\
+            "can reach goal at " goalx " " goaly " in " distance[goaly][goalx]\
+                " steps"
+    }
+    else { print distance[goaly][goalx] }
+}
