@@ -3,6 +3,7 @@ BEGIN {
     FS = ""
     line = 0
     verbose = 0
+    mindist = 999999999999999
 
     for (n = 0; n < 256; n++) { ord[sprintf("%c", n)] = n - 97 }
 }
@@ -13,6 +14,7 @@ BEGIN {
     for (i = 0; i < NF; i++) {
         height[line][i] = ord[$(i + 1)]
         distance[line][i] = 999999999999999
+        distanceB[line][i] = 999999999999999
 
         if ($(i + 1) == "S") {
             height[line][i] = 0
@@ -22,6 +24,9 @@ BEGIN {
         }
 
         if ($(i + 1) == "E") {
+            searchxB[0] = line
+            searchyB[0] = i
+            distanceB[line][i] = 0
             height[line][i] = 25
             goalx = i
             goaly = line
@@ -31,8 +36,7 @@ BEGIN {
     line++
 }
 
-function consider(x, y, nextx, nexty) {
-    #consider only height increase
+function considerA(x, y, nextx, nexty) {
     if (\
         nextx in distance && nexty in distance[nextx] &&
         distance[x][y] + 1 < distance[nextx][nexty] &&
@@ -42,6 +46,23 @@ function consider(x, y, nextx, nexty) {
         searchx[searchable] = nextx
         searchy[searchable] = nexty
         searchable++
+    }
+}
+
+function considerB(x, y, nextx, nexty) {
+    if (\
+        nextx in distanceB && nexty in distanceB[nextx] &&
+        distanceB[x][y] + 1 < distanceB[nextx][nexty] &&
+        height[x][y] - 1 <= height[nextx][nexty]\
+    ) {
+        distanceB[nextx][nexty] = distanceB[x][y] + 1
+        searchxB[searchable] = nextx
+        searchyB[searchable] = nexty
+        searchable++
+
+        if (height[nextx][nexty] == 0 && distanceB[nextx][nexty] < mindist) {
+            mindist = distanceB[nextx][nexty]
+        }
     }
 }
 
@@ -62,10 +83,29 @@ END {
             print "analysing point " x " " y " with distance " distance[x][y]
         }
 
-        consider(x, y, x + 1, y)
-        consider(x, y, x - 1, y)
-        consider(x, y, x, y + 1)
-        consider(x, y, x, y - 1)
+        considerA(x, y, x + 1, y)
+        considerA(x, y, x - 1, y)
+        considerA(x, y, x, y + 1)
+        considerA(x, y, x, y - 1)
+
+        to_search++
+    }
+
+    to_search = 0
+    searchable = 1
+
+    while (to_search < searchable) {
+        x = searchxB[to_search]
+        y = searchyB[to_search]
+
+        if (verbose == 1) {
+            print "analysing point " x " " y " with distance " distanceB[x][y]
+        }
+
+        considerB(x, y, x + 1, y)
+        considerB(x, y, x - 1, y)
+        considerB(x, y, x, y + 1)
+        considerB(x, y, x, y - 1)
 
         to_search++
     }
@@ -83,6 +123,8 @@ END {
         print\
             "can reach goal at " goalx " " goaly " in " distance[goaly][goalx]\
                 " steps"
+
+        print "min dist to a level is " mindist
     }
-    else { print distance[goaly][goalx] }
+    else { print distance[goaly][goalx] "\n" mindist }
 }
