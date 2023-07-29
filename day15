@@ -1,0 +1,130 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = "[ ,=:]"
+
+    if (ARGC >= 2) {
+        if (index(ARGV[1], "example")) {
+            yMax = 20
+            yA = 10
+        }
+        else {
+            yMax = 4000000
+            yA = 2000000
+        }
+    }
+
+    verbose = 0
+    sensor_cnt = 0
+    YIntercept_A_cnt = 0
+    YIntercept_B_cnt = 0
+}
+
+{ add_beacon($4, $7, $14, $17) }
+
+END {
+    print find_solution_A()
+    print find_solution_B()
+}
+
+function add_beacon(xS, yS, xB, yB) {
+    x_S[sensor_cnt] = xS
+    y_S[sensor_cnt] = yS
+    x_B[sensor_cnt] = xB
+    y_B[sensor_cnt] = yB
+    sensor_cnt++
+
+    r = exclusion_radius(xS, yS, xB, yB)
+
+    if (verbose == 1) {
+        printf("xS=%8d\tyS=%8d\txB=%8d\tyB=%8d\tr=%8d\n", xS, yS, xB, yB, r)
+    }
+
+    YIntercept_A[YIntercept_A_cnt] = yS + xS - r - 1
+    YIntercept_A_cnt++
+    YIntercept_B[YIntercept_B_cnt] = yS - xS + r + 1
+    YIntercept_B_cnt++
+
+    r_at_yA = r - abs(yS - yA)
+
+    if (r_at_yA > 0) {
+        lSet[scnt] = xS - r_at_yA
+        hSet[scnt] = xS + r_at_yA
+        scnt++
+    }
+}
+
+function exclusion_radius(x, y, xB, yB) { return abs(x - xB) + abs(y - yB) }
+
+function abs(v) { return v < 0 ? -v : v }
+
+function find_solution_A() {
+    ensure_no_overlap()
+
+    excl_pnts = 0
+
+    for (s in lSet) { excl_pnts += hSet[s] - lSet[s] }
+
+    return excl_pnts
+}
+
+function ensure_no_overlap() {
+    for (s in lSet) {
+        for (j in lSet) {
+            if (s == j) continue
+
+            if (!(s in lSet && s in hSet && j in lSet && j in hSet)) {
+                continue
+            }
+
+            if (lSet[s] <= lSet[j] && hSet[s] + 1 >= lSet[j]) {
+                if (hSet[j] > hSet[s]) hSet[s] = hSet[j]
+
+                delete lSet[j]
+                delete hSet[j]
+            }
+            else if (lSet[j] <= lSet[s] && hSet[j] + 1 >= lSet[s]) {
+                if (hSet[s] > hSet[j]) hSet[j] = hSet[s]
+
+                delete lSet[s]
+                delete hSet[s]
+            }
+        }
+    }
+}
+
+function find_solution_B() {
+    for (l in YIntercept_A) {
+        for (j in YIntercept_B) {
+            deltay = YIntercept_A[l] - YIntercept_B[j]
+            yC = YIntercept_B[j] + deltay / 2
+            xC = deltay / 2
+
+            if (\
+                deltay % 2 == 0 && xC >= 0 && xC <= yMax && yC >= 0 &&
+                yC <= yMax &&
+                !in_range_of_sensors(xC, yC)\
+            ) {
+                solution = xC * 4000000 + yC
+                return solution
+            }
+        }
+    }
+
+    print "NO SOLUTION FOUND"
+    return 0
+}
+
+function in_range_of_sensors(xC, yC) {
+    for (b in x_S) {
+        xS = x_S[b]
+        yS = y_S[b]
+        xB = x_B[b]
+        yB = y_B[b]
+        rB = exclusion_radius(xS, yS, xB, yB)
+        rC = exclusion_radius(xS, yS, xC, yC)
+
+        if (rC <= rB) { return 1 }
+    }
+
+    return 0
+}
