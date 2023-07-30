@@ -1,0 +1,65 @@
+#!/usr/bin/awk -f
+BEGIN { FS = "[ ,;=]" }
+
+{
+    for (i = 12; i <= NF; i += 2) { adjacent[$2][a_cnt[$2]++] = $i }
+
+    flow_rate[$2] = $6
+
+    if (flow_rate[$2] > 0) { valve[$2] = flow_rate[$2] }
+}
+
+function distances_from(origin, loop_point) {
+    for (i in adjacent[loop_point]) {
+        to = adjacent[loop_point][i]
+
+        if (\
+            !(to in distance[origin]) ||
+            distance[origin][to] > distance[origin][loop_point] + 1\
+        ) {
+            distance[origin][to] = distance[origin][loop_point] + 1
+            distances_from(origin, to)
+        }
+    }
+}
+
+function all_distances() {
+    for (i in flow_rate) {
+        distance[i][i] = 0
+        distances_from(i, i)
+    }
+}
+
+function add_step(strr, laststep, i, time_remaining, total_flow2) {
+    nex = strr " " i
+    time_remaining -= distance[laststep][i] + 1
+
+    if (time_remaining < 0) { time_remaining = 0 }
+
+    total_flow2 = total_flow2 + valve[i] * time_remaining
+
+    if (total_flow2 > best_flow) { best_flow = total_flow2 }
+
+    for (bi in visited[strr]) { visited[nex][bi] = 1 }
+
+    visited[nex][i] = 1
+
+    if (time_remaining > 0) gen_comb(nex, i, time_remaining, total_flow2)
+
+    visited[nex][i] = 0
+}
+
+function gen_comb(strr, laststep, time_remaining, total_flow2) {
+    for (i in valve) {
+        if (!(i in visited[strr])) {
+            add_step(strr, laststep, i, time_remaining, total_flow2)
+        }
+    }
+}
+
+END {
+    all_distances()
+    visited["AA"][0] = 1
+    gen_comb("AA", "AA", 30, 0)
+    print best_flow
+}
