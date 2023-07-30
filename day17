@@ -1,0 +1,213 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = ""
+    load_rocks()
+    total_rocks = 2022
+    rock_type = 0
+    rock_cnt = 1
+    X = 2
+    Z = 3
+    verbose = 0
+
+    if (verbose == 1) print_rocks()
+}
+
+function load_rocks() {
+    # -
+    R[0][0][0] = "#"
+    R[0][0][1] = "#"
+    R[0][0][2] = "#"
+    R[0][0][3] = "#"
+
+    # +
+    R[1][0][1] = "#"
+    R[1][1][0] = "#"
+    R[1][1][1] = "#"
+    R[1][1][2] = "#"
+    R[1][2][1] = "#"
+
+    # L
+    R[2][0][0] = "#"
+    R[2][0][1] = "#"
+    R[2][0][2] = "#"
+    R[2][1][2] = "#"
+    R[2][2][2] = "#"
+
+    # |
+    R[3][0][0] = "#"
+    R[3][1][0] = "#"
+    R[3][2][0] = "#"
+    R[3][3][0] = "#"
+
+    # []
+    R[4][0][0] = "#"
+    R[4][0][1] = "#"
+    R[4][1][0] = "#"
+    R[4][1][1] = "#"
+
+    for (rock in R) {
+        for (line = 0; line < 4; line++) {
+            for (row = 0; row < 4; row++) {
+                if (!(line in R[rock]) || !(row in R[rock][line])) {
+                    R[rock][line][row] = "."
+                }
+            }
+        }
+    }
+}
+
+function print_rocks() {
+    for (rock in R) {
+        for (line = 3; line >= 0; line--) {
+            for (row = 0; row < 4; row++) { printf("%s", R[rock][line][row]) }
+
+            print ""
+        }
+
+        print ""
+    }
+}
+
+{
+    j = 0
+
+    while (rock_cnt <= total_rocks) {
+        j %= NF
+        simualte_next($(j + 1))
+        j++
+    }
+
+    print HeighestZ + 1
+}
+
+function simualte_next(input) {
+    try_push_rock(input)
+    try_fall()
+}
+
+function collision() {
+    for (l in R[rock_type]) {
+        for (i in R[rock_type][l]) {
+            if (R[rock_type][l][i] != ".") {
+                RockZ = Z + l
+                RockX = X + i
+
+                if (\
+                    RockZ in pattern && RockX in pattern[RockZ] &&
+                    pattern[RockZ][RockX] == "#"\
+                ) return 1
+
+                if (RockZ < 0) return 1
+
+                if (RockX < 0 || RockX > 6) return 1
+            }
+        }
+    }
+
+    return 0
+}
+
+function try_push_rock(side) {
+    XB = X
+
+    if (side == ">") { X++ }
+    else if (side == "<") { X-- }
+
+    if (collision() != 0) {
+        X = XB
+
+        if (verbose == 1) print "pushing side " side " is blocked"
+    }
+    else {
+        if (verbose == 1) print "a jet of air pushes rock " side
+    }
+
+    #draw_level()
+}
+
+function rock_comes_to_rest() {
+    for (l in R[rock_type]) {
+        for (i in R[rock_type][l]) {
+            if (R[rock_type][l][i] != ".") {
+                if (Z + l > HeighestZ) { HeighestZ = Z + l }
+            }
+        }
+    }
+
+    for (l in R[rock_type]) {
+        for (i in R[rock_type][l]) {
+            if (R[rock_type][l][i] != ".") {
+                l_draw = Z + l
+                i_draw = X + i
+                pattern[l_draw][i_draw] = "#"
+            }
+        }
+    }
+
+    rock_type++
+    rock_type %= 5
+    Z = HeighestZ + 4
+    X = 2
+
+    rock_cnt++
+
+    if (verbose == 1) {
+        print "a new rock starts falling"
+        draw_level()
+    }
+}
+
+function try_fall() {
+    Z--
+
+    if (collision() != 0) {
+        Z++
+        rock_comes_to_rest()
+    }
+}
+
+function draw_level() {
+    delete level
+    draw_rocks()
+    draw_falling_rock()
+    print_level()
+}
+
+function draw_rocks() {
+    for (l in pattern) {
+        for (i = 0; i < 7; i++) {
+            if (pattern[l][i]) { level[l][i] = pattern[l][i] }
+        }
+    }
+}
+
+function draw_falling_rock() {
+    for (l in R[rock_type]) {
+        for (i in R[rock_type][l]) {
+            if (R[rock_type][l][i] != ".") { level[Z + l][X + i] = "@" }
+        }
+    }
+}
+
+function print_level() {
+    for (l = Z + 4; l >= 0; l--) {
+        sl = sprintf("%3d|", l)
+        s = ""
+
+        for (i = 0; i < 7; i++) {
+            s = s " "
+
+            if (l in level && i in level[l]) { s = s sprintf(level[l][i]) }
+            else { s = s "." }
+        }
+
+        printf(sl)
+        printf(s)
+        printf(" |")
+        print ""
+    }
+
+    print "   + - - - - - - - +"
+    print "   + 0 1 2 3 4 5 6 +"
+    print ""
+}
