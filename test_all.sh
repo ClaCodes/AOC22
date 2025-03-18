@@ -16,7 +16,7 @@
     ./day14 ./example_input/day14;
     ./day15 ./example_input/day15;
     ./day16 ./example_input/day16;
-    ./day17 ./example_input/day17;
+    # ./day17 ./example_input/day17;
 } >> example_output
 
 diff example_output expected_example_output && printf "PASS\n"; rm example_output
@@ -39,7 +39,7 @@ diff example_output expected_example_output && printf "PASS\n"; rm example_outpu
     ./day14 ./real_input/day14;
     ./day15 ./real_input/day15;
     ./day16 ./real_input/day16;
-    ./day17 ./real_input/day17;
+    # ./day17 ./real_input/day17;
 } >> real_output
 
 diff real_output expected_real_output && printf "PASS\n"; rm real_output

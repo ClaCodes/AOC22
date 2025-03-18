@@ -1,0 +1,147 @@
+#!/usr/bin/awk -f
+BEGIN { FS = "[ :]" }
+
+function maximum_geodes_opened(id, time_left, ore, cla, obs, geo, ore_r, cla_r, obs_r, geo_r, result, res_cnt) {
+    if (time_left <= 0) {
+        if (geo > 0) print "nonzero geo " geo
+
+        return geo
+    }
+
+    #do nothing
+    result[res_cnt++] = maximum_geodes_opened(\
+        id,
+        time_left - 1,
+        ore + ore_r,
+        cla + cla_r,
+        obs + obs_r,
+        geo + geo_r,
+        ore_r,
+        cla_r,
+        obs_r,
+        geo_r\
+    )
+
+    #build ore
+    if (ore_r<max_ore && ore >= blueprint[id][0][0]) {
+        #print "building ore robot"
+        result[res_cnt++] = maximum_geodes_opened(\
+            id,
+            time_left - 1,
+            ore + ore_r - blueprint[id][0][0],
+            cla + cla_r,
+            obs + obs_r,
+            geo + geo_r,
+            ore_r + 1,
+            cla_r,
+            obs_r,
+            geo_r\
+        )
+    }
+
+    #build cla
+    if (cla_r<blueprint[2][1] && ore >= blueprint[id][1][0]) {
+        #print "building clay robot"
+        result[res_cnt++] = maximum_geodes_opened(\
+            id,
+            time_left - 1,
+            ore + ore_r - blueprint[id][1][0],
+            cla + cla_r,
+            obs + obs_r,
+            geo + geo_r,
+            ore_r,
+            cla_r + 1,
+            obs_r,
+            geo_r\
+        )
+    }
+
+    #build obs
+    if (obs_r<blueprint[3][2] && ore >= blueprint[id][2][0] && cla >= blueprint[id][2][1]) {
+        #print "building obsidian robot"
+        result[res_cnt++] = maximum_geodes_opened(\
+            id,
+            time_left - 1,
+            ore + ore_r - blueprint[id][2][0],
+            cla + cla_r - blueprint[id][2][1],
+            obs + obs_r,
+            geo + geo_r,
+            ore_r,
+            cla_r,
+            obs_r + 1,
+            geo_r\
+        )
+    }
+
+    #build geo
+    if (ore >= blueprint[id][3][0] && obs >= blueprint[id][3][2]) {
+        #print "building geode robot"
+        result[res_cnt++] = maximum_geodes_opened(\
+            id,
+            time_left - 1,
+            ore + ore_r - blueprint[id][3][0],
+            cla + cla_r,
+            obs + obs_r - blueprint[id][3][2],
+            geo + geo_r,
+            ore_r,
+            cla_r,
+            obs_r,
+            geo_r + 1\
+        )
+    }
+
+    best_result = 0
+
+    for (r in result) {
+        #print "have result " result[r]
+        if (result[r] > best_result) best_result = result[r]
+    }
+
+    # print\
+    #     "done computing for id " id " time_left " time_left " best " best_result
+    return best_result
+}
+
+function print_blueprint(id) {
+    print\
+        "ID: " id ", ore costs ore:" blueprint[id][0][0] ", clay cost ore:"\
+            blueprint[id][1][0]\
+            ", obsidian cost ore:"\
+            blueprint[id][2][0]\
+            ", obsidian cost clay:"\
+            blueprint[id][2][1]\
+            ", goede cost ore:"\
+            blueprint[id][3][0]\
+            ", geode cost obsidian:"\
+            blueprint[id][3][2]
+}
+
+function compute_quality_level(id, ORE_cost_ore, CLA_cost_ore, OBS_cost_ore, OBS_cost_clay, GEO_cost_ore, GEO_cost_obs) {
+    id = int(id)
+    blueprint[id][0][0] = int(ORE_cost_ore)
+    blueprint[id][1][0] = int(CLA_cost_ore)
+    blueprint[id][2][0] = int(OBS_cost_ore)
+    blueprint[id][2][1] = int(OBS_cost_clay)
+    blueprint[id][3][0] = int(GEO_cost_ore)
+    blueprint[id][3][2] = int(GEO_cost_obs)
+    max_ore = 0
+
+    if (blueprint[0][0] > max_ore) max_ore = blueprint[0][0]
+    if (blueprint[1][0] > max_ore) max_ore = blueprint[1][0]
+    if (blueprint[2][0] > max_ore) max_ore = blueprint[2][0]
+    if (blueprint[3][0] > max_ore) max_ore = blueprint[3][0]
+
+    print_blueprint(id)
+    max_return = maximum_geodes_opened(id, 24, 0, 0, 0, 0, 1, 0, 0, 0)
+    print "max return geodes " max_return
+    return id * max_return
+}
+
+{
+    print $0
+    print ""
+    total_quality += compute_quality_level($2, $8, $14, $20, $23, $29, $32)
+    print ""
+}
+
+END { print "total quality is " total_quality }

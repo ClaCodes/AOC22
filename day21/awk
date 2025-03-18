@@ -1,0 +1,56 @@
+#!/usr/bin/awk -f
+BEGIN { FS = "[ :]" }
+
+{
+    if ($4 == "") { num[$1] = int($3) }
+    else {
+        operand1[$1] = $3
+        operation[$1] = $4
+        operand2[$1] = $5
+    }
+
+    #print $1 "   " $3 "  " $4 "   " $5
+}
+
+function eval(monkey) {
+    if (monkey in num) {
+        print "already know " monkey " as " num[monkey]
+
+        return
+    }
+
+    eval(operand1[monkey])
+    eval(operand2[monkey])
+
+    if (operation[monkey] == "+") {
+        num[monkey] = num[operand1[monkey]] + num[operand2[monkey]]
+        print "new " monkey " as " num[monkey]
+    }
+    else if (operation[monkey] == "-") {
+        num[monkey] = num[operand1[monkey]] - num[operand2[monkey]]
+        print "new " monkey " as " num[monkey]
+    }
+    else if (operation[monkey] == "*") {
+        num[monkey] = num[operand1[monkey]] * num[operand2[monkey]]
+        print "new " monkey " as " num[monkey]
+    }
+    else if (operation[monkey] == "/") {
+        num[monkey] = num[operand1[monkey]] / num[operand2[monkey]]
+        print "new " monkey " as " num[monkey]
+    }
+    else { print "ERROR" }
+}
+
+END {
+    for (m in num) { print m " has " num[m] }
+
+    for (m in operand1) {
+        print\
+            m " has operation " operation[m] " with operands " operand1[m]\
+                " and "\
+                operand2[m]
+    }
+
+    eval("root")
+    print "solution is " num["root"]
+}

@@ -189,3 +189,4 @@ END {
     fill_airB()
     simulate_sandB()
 }
+# todo if there is only one path option left. already come to rest this round?

@@ -1,0 +1,130 @@
+#!/usr/bin/awk -f
+BEGIN { line = 0 }
+
+{
+    nr = int($0)
+    identifier = line ":" nr
+    ns[identifier] = nr
+    nsA[identifier] = nr
+    n_l[identifier] = line
+    n_i[line] = identifier
+    ns_original_index[line] = identifier
+
+    if (nr == 0) zero_identifier = identifier
+
+    line++
+}
+
+function print_ns() {
+    zero_ind = n_l[zero_identifier]
+    printf("ns:      ")
+
+    for (i = 0; i < line; i++) {
+        printf("%s, ", ns[n_i[(zero_ind + i) % line]])
+    }
+
+    print ""
+}
+
+function print_id() {
+    zero_ind = n_l[zero_identifier]
+    printf("indeces: ")
+
+    for (i = 0; i < line; i++) {
+        printf("%s, ", n_l[n_i[(zero_ind + i) % line]])
+    }
+
+    print ""
+}
+
+function print_indeces() {
+    zero_ind = n_l[zero_identifier]
+    printf("indeces: ")
+
+    for (i = 0; i < line; i++) { printf("%s, ", n_i[(zero_ind + i) % line]) }
+
+    print ""
+}
+
+function print_all() {
+    #print_id()
+    print_indeces()
+    print_ns()
+    print ""
+}
+
+function swap(id, direction) {
+    #print "swapping " id " in direction " direction
+    ind = n_l[id]
+    next_ind = (ind + direction + line) % line
+    next_id = n_i[next_ind]
+
+    temp = n_i[next_ind]
+    n_i[next_ind] = n_i[ind]
+    n_i[ind] = temp
+
+    temp = n_l[next_id]
+    n_l[next_id] = n_l[id]
+    n_l[id] = temp
+}
+
+function mix(id) {
+    #print "mixxing " id
+    j = ns[id]
+    #print id j
+    if (j > 0) {
+        j %= line - 1
+
+        for (n = 0; n < j; n++) { swap(id, 1) }
+    }
+    else {
+        j = -j
+        j %= line - 1
+        j = -j
+
+        for (n = 0; n > j; n--) { swap(id, -1) }
+    }
+}
+
+function mix_all() {
+    for (org_i in ns_original_index) {
+        #if (org_i > 3) break
+
+        print org_i "/" line " " ns_original_index[org_i] " moves"
+        mix(ns_original_index[org_i])
+        #print_all()
+    }
+}
+
+function find_solution() {
+    zero_ind = n_l[zero_identifier]
+    id_1000 = n_i[(zero_ind + 1000) % line]
+    id_2000 = n_i[(zero_ind + 2000) % line]
+    id_3000 = n_i[(zero_ind + 3000) % line]
+    n_1000 = ns[id_1000]
+    n_2000 = ns[id_2000]
+    n_3000 = ns[id_3000]
+    print\
+        "n at 1000: " n_1000 " n at 2000: " n_2000 \
+            " n at 3000 "\
+            n_3000 \
+            " sum: "\
+            (n_1000 + n_2000 + n_3000) 
+}
+
+function multiply_all() {
+    for (i in ns) { ns[i] *= (811589153) }
+}
+
+END {
+    multiply_all()
+
+    for (a = 0; a < 10; a++) {
+        print_all()
+        mix_all()
+    }
+
+    print_all()
+
+    find_solution()
+}

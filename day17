@@ -3,6 +3,7 @@ BEGIN {
     FS = ""
     load_rocks()
     total_rocks = 2022
+    # total_rocks = 1000000000000
     rock_type = 0
     rock_cnt = 1
     X = 2
@@ -150,6 +151,7 @@ function rock_comes_to_rest() {
     X = 2
 
     rock_cnt++
+    # print rock_cnt " / " total_rocks
 
     if (verbose == 1) {
         print "a new rock starts falling"

@@ -1,0 +1,70 @@
+#!/usr/bin/awk -f
+BEGIN { FS = "[ :]" }
+
+{
+    if ($4 == "") { num[$1] = int($3) }
+    else {
+        operand1[$1] = $3
+        operation[$1] = $4
+        operand2[$1] = $5
+    }
+
+    #print $1 "   " $3 "  " $4 "   " $5
+}
+
+function eval(monkey) {
+    if (monkey in num2 ) {
+        print "already know " monkey " as " num2[monkey]
+
+        return
+    }
+
+    eval(operand1[monkey])
+    eval(operand2[monkey])
+
+    if (operation[monkey] == "+") {
+        num2[monkey] = num2[operand1[monkey]] + num2[operand2[monkey]]
+        print "new " monkey " as " num2[monkey]
+    }
+    else if (operation[monkey] == "-") {
+        num2[monkey] = num2[operand1[monkey]] - num2[operand2[monkey]]
+        print "new " monkey " as " num2[monkey]
+    }
+    else if (operation[monkey] == "*") {
+        num2[monkey] = num2[operand1[monkey]] * num2[operand2[monkey]]
+        print "new " monkey " as " num2[monkey]
+    }
+    else if (operation[monkey] == "/") {
+        num2[monkey] = num2[operand1[monkey]] / num2[operand2[monkey]]
+        print "new " monkey " as " num2[monkey]
+    }
+    else { print "ERROR" }
+}
+
+function part2() {
+    num["humn"] += 1
+    delete num2
+
+    for (m in num) { num2[m] = num[m] }
+
+    print "retrying with num humn=" num["humn"]
+    eval(operand1["root"])
+    eval(operand2["root"])
+
+    if (num2[operand1["root"]] != num2[operand2["root"]]) { part2() }
+    else { print "solution is " num["humn"] }
+}
+
+END {
+    for (m in num) { print m " has " num[m] }
+
+    for (m in operand1) {
+        print\
+            m " has operation " operation[m] " with operands " operand1[m]\
+                " and "\
+                operand2[m]
+    }
+
+    num["humn"] = 0
+    part2()
+}
