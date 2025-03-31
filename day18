@@ -1,0 +1,190 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = ","
+
+    xL = 1
+    yL = 1
+    zL = 1
+    xH = 1
+    yH = 1
+    zH = 1
+}
+
+{ voxels[int($1)][int($2)][int($3)] = 1 }
+
+function occupied(x, y, z) {
+    if (x in voxels && y in voxels[x] && z in voxels[x][y]) { return 1 }
+
+    return 0
+}
+
+function find_limits() {
+    for (x in voxels) {
+        for (y in voxels[x]) {
+            for (z in voxels[x][y]) {
+                x = int(x)
+                y = int(y)
+                z = int(z)
+
+                if (x < xL) xL = x
+
+                if (y < yL) yL = y
+
+                if (z < zL) zL = z
+
+                if (x > xH) xH = x
+
+                if (y > yH) yH = y
+
+                if (z > zH) zH = z
+            }
+        }
+    }
+}
+
+function occupied_neighbors(x, y, z) {
+    neighbors = 0
+    neighbors += occupied(x, y, z - 1)
+    neighbors += occupied(x, y, z + 1)
+    neighbors += occupied(x, y + 1, z)
+    neighbors += occupied(x, y - 1, z)
+    neighbors += occupied(x + 1, y, z)
+    neighbors += occupied(x - 1, y, z)
+    return neighbors
+}
+
+function surface_area() {
+    area = 0
+
+    for (x in voxels) {
+        for (y in voxels[x]) {
+            for (z in voxels[x][y]) { area += 6 - occupied_neighbors(x, y, z) }
+        }
+    }
+
+    return area
+}
+
+
+function part_of_current_pocket(x, y, z) {
+    #print "checking part of current pocket " x " " y " " z
+    if (occupied(x, y, z) != 0) { return 0 }
+
+    if (\
+        x in current_pocket && y in current_pocket[x] &&
+        z in current_pocket[x][y]\
+    ) { return 1 }
+
+    if (x <= xL || x >= xH || y <= yL || y >= yH || z <= zL || z >= zH) {
+        #print "border reached"
+        return -1
+    }
+
+    current_pocket[x][y][z] = 1
+
+    neighbors = part_of_current_pocket(x, y, z - 1)
+
+    if (neighbors == -1) { return -1 }
+
+    neighbors = part_of_current_pocket(x, y, z + 1)
+
+    if (neighbors == -1) { return -1 }
+
+    neighbors = part_of_current_pocket(x, y + 1, z)
+
+    if (neighbors == -1) { return -1 }
+
+    neighbors = part_of_current_pocket(x, y - 1, z)
+
+    if (neighbors == -1) { return -1 }
+
+    neighbors = part_of_current_pocket(x + 1, y, z)
+
+    if (neighbors == -1) { return -1 }
+
+    neighbors = part_of_current_pocket(x - 1, y, z)
+
+    if (neighbors == -1) { return -1 }
+
+    return 1
+}
+
+function fill_current_pocket() {
+    for (x in current_pocket) {
+        for (y in current_pocket[x]) {
+            for (z in current_pocket[x][y]) { voxels[x][y][z] = 1 }
+        }
+    }
+}
+
+function fill_if_pocket(x, y, z) {
+    #print "consider as pocket base " x " " y " " z
+    delete current_pocket
+    if (part_of_current_pocket(x, y, z) == 1) {
+        #print "fill pocket with base " x " " y " " z
+        fill_current_pocket()
+    }
+}
+
+function fill_pockets() {
+    for (x = xL; x <= xH; x++) {
+        for (y = yL; y <= yH; y++) {
+            for (z = zL; z <= zH; z++) { fill_if_pocket(x, y, z) }
+        }
+    }
+}
+
+function visualize() {
+    for (x = xL; x <= xH; x++) {
+        print "\nx=" x
+
+        for (y = yL; y <= yH; y++) {
+            for (z = zL; z <= zH; z++) {
+                if (x in voxels && y in voxels[x] && z in voxels[x][y]) {
+                    printf("#")
+                }
+                else if (\
+                    x - 1 in voxels && y in voxels[x - 1] &&
+                    z in voxels[x - 1][y] &&
+
+                    x + 1 in voxels &&
+                    y in voxels[x + 1] &&
+                    z in voxels[x + 1][y]\
+                ) { printf("o") }
+                else printf(".")
+            }
+
+            print ""
+        }
+    }
+}
+
+END {
+    # for (x in voxels) {
+    #     for (y in voxels[x]) {
+    #         for (z in voxels[x][y]) { print "voxel at " x "," y "," z }
+    #     }
+    # }
+
+    find_limits()
+    # print "limits of block x:" xL "," xH " y:" yL "," yH " z:" zL "," zH
+
+    # visualize()
+    a = surface_area()
+    print a
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    fill_pockets()
+    # visualize()
+    a = surface_area()
+    print a
+}
