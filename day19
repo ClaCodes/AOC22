@@ -1,0 +1,239 @@
+#!/usr/bin/awk -f
+BEGIN {
+    total_quality = 0
+    product_of_geodes = 1
+    FS = "[ :]"
+}
+
+function new_geods_possible(time_left, g) {
+    g = 0
+
+    while (time_left > 0) {
+        time_left--
+
+        g += time_left
+    }
+
+    return g
+}
+
+function recure(id, time_left, ore, cla, obs, geo, ore_r, cla_r, obs_r, geo_r, str) {
+    g = time_left * geo_r + geo + new_geods_possible(time_left)
+
+    if (g < most_geodes) {
+        # print\
+        #     "not possible to beat current best " most_geodes " at time left "\
+        #         time_left\
+        #         " maximum possible is "\
+        #         g
+
+        return
+    }
+
+    if (ore_r < max_ore) {
+        build_robot(\
+            0,
+            id,
+            time_left,
+            ore,
+            cla,
+            obs,
+            geo,
+            ore_r,
+            cla_r,
+            obs_r,
+            geo_r,
+            str\
+        )
+    }
+
+    if (cla_r < blueprint[id][2][1]) {
+        build_robot(\
+            1,
+            id,
+            time_left,
+            ore,
+            cla,
+            obs,
+            geo,
+            ore_r,
+            cla_r,
+            obs_r,
+            geo_r,
+            str\
+        )
+    }
+
+    if (obs_r<blueprint[id][3][2] && cla_r > 0) {
+        build_robot(\
+            2,
+            id,
+            time_left,
+            ore,
+            cla,
+            obs,
+            geo,
+            ore_r,
+            cla_r,
+            obs_r,
+            geo_r,
+            str\
+        )
+    }
+
+    if (obs_r > 0) {
+        build_robot(\
+            3,
+            id,
+            time_left,
+            ore,
+            cla,
+            obs,
+            geo,
+            ore_r,
+            cla_r,
+            obs_r,
+            geo_r,
+            str\
+        )
+    }
+}
+
+function build_robot(type, id, time_left, ore, cla, obs, geo, ore_r, cla_r, obs_r, geo_r, str) {
+    #print "/////////////////////////////////////////////////////////////"
+    #print "trying to build " type
+
+    #if (ore < blueprint[id][type][0]) {
+    #    print "not enough ore " ore "/" blueprint[id][type][0]
+    #}
+    #else { print "enough ore " ore "/" blueprint[id][type][0] }
+
+    #if (cla < blueprint[id][type][1]) {
+    #    print "not enough cla " cla "/" blueprint[id][type][1]
+    #}
+    #else { print "enough cla " cla "/" blueprint[id][type][1] }
+
+    #if (obs < blueprint[id][type][2]) {
+    #    print "not enough obs " obs "/" blueprint[id][type][2]
+    #}
+    #else { print "enough obs " obs "/" blueprint[id][type][2] }
+    while (time_left > 1 &&
+    (ore < blueprint[id][type][0] || cla < blueprint[id][type][1] ||
+    obs < blueprint[id][type][2])) {
+        #    print\
+        #        time_left "min left. can not yet afford to build " type " ore:" ore\
+        #            "/"\
+        #            blueprint[id][type][0]\
+        #            " cla:"\
+        #            cla\
+        #            "/"\
+        #            blueprint[id][type][1]\
+        #            " obs:"\
+        #            obs\
+        #            "/"\
+        #            blueprint[id][type][2]
+        time_left--
+        ore += ore_r
+        cla += cla_r
+        obs += obs_r
+        geo += geo_r
+        str = str ":."
+    }
+
+    time_left--
+    ore += ore_r
+    cla += cla_r
+    obs += obs_r
+    geo += geo_r
+    str = str ":" type
+
+    if (time_left <= 0) {
+        if (geo > most_geodes) {
+            print str "   " geo
+            most_geodes = geo
+        }
+
+        return
+    }
+
+    ore -= blueprint[id][type][0]
+    cla -= blueprint[id][type][1]
+    obs -= blueprint[id][type][2]
+    #print\
+    #    time_left "min left. can afford to build.ressource after " type " ore:"\
+    #        ore\
+    #        "/"\
+    #        blueprint[id][type][0]\
+    #        " cla:"\
+    #        cla\
+    #        "/"\
+    #        blueprint[id][type][1]\
+    #        " obs:"\
+    #        obs\
+    #        "/"\
+    #        blueprint[id][type][2]
+    if (type == 0) { ore_r++ }
+    else if (type == 1) { cla_r++ }
+    else if (type == 2) { obs_r++ }
+    else if (type == 3) { geo_r++ }
+
+    recure(id, time_left, ore, cla, obs, geo, ore_r, cla_r, obs_r, geo_r, str)
+}
+
+function print_blueprint(id) {
+    print\
+        "ID: " id ", ore costs ore:" blueprint[id][0][0] ", clay cost ore:"\
+            blueprint[id][1][0]\
+            ", obsidian cost ore:"\
+            blueprint[id][2][0]\
+            ", obsidian cost clay:"\
+            blueprint[id][2][1]\
+            ", goede cost ore:"\
+            blueprint[id][3][0]\
+            ", geode cost obsidian:"\
+            blueprint[id][3][2]
+}
+
+function compute_quality_level(minutes, id, ORE_cost_ore, CLA_cost_ore, OBS_cost_ore, OBS_cost_clay, GEO_cost_ore, GEO_cost_obs) {
+    id = int(id)
+    blueprint[id][0][0] = int(ORE_cost_ore)
+    blueprint[id][0][1] = 0
+    blueprint[id][0][2] = 0
+    blueprint[id][1][0] = int(CLA_cost_ore)
+    blueprint[id][1][1] = 0
+    blueprint[id][1][2] = 0
+    blueprint[id][2][0] = int(OBS_cost_ore)
+    blueprint[id][2][1] = int(OBS_cost_clay)
+    blueprint[id][2][2] = 0
+    blueprint[id][3][0] = int(GEO_cost_ore)
+    blueprint[id][3][1] = 0
+    blueprint[id][3][2] = int(GEO_cost_obs)
+    max_ore = 0
+
+    if (blueprint[id][0][0] > max_ore) max_ore = blueprint[id][0][0]
+
+    if (blueprint[id][1][0] > max_ore) max_ore = blueprint[id][1][0]
+
+    if (blueprint[id][2][0] > max_ore) max_ore = blueprint[id][2][0]
+
+    if (blueprint[id][3][0] > max_ore) max_ore = blueprint[id][3][0]
+
+    print_blueprint(id)
+    most_geodes = 0
+    recure(id, minutes, 0, 0, 0, 0, 1, 0, 0, 0, "")
+
+    print "max return geodes " most_geodes
+    return most_geodes
+}
+
+{
+    if (int($2) < 4) {
+        product_of_geodes *= compute_quality_level(32, $2, $8, $14, $20, $23, $29, $32)
+    }
+    total_quality += int($2) * compute_quality_level(24, $2, $8, $14, $20, $23, $29, $32)
+}
+
+END {
+    print total_quality
+    print product_of_geodes
+}
