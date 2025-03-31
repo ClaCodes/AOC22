@@ -1,0 +1,9 @@
+[package]
+name = "bevy22"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.14.0"
+bevy-inspector-egui = "0.25.1"
+image = "0.25.1"
