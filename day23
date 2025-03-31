@@ -1,0 +1,234 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = ""
+    line = 0
+    direction[0] = "N"
+    direction[1] = "S"
+    direction[2] = "W"
+    direction[3] = "E"
+    first_direction = 0
+    Border = 12
+}
+
+{
+    Max_x = NF
+
+    for (i = 0; i < NF; i++) {
+        if ($(i + 1) == "#") {
+            total_elf++
+            identifier = line ":" i
+            update_limits(line, i)
+        }
+        else { identifier = "." }
+
+        map[line][i] = identifier
+        map_line[identifier] = line
+        map_x[identifier] = i
+    }
+
+    line++
+
+    Max_l = line
+}
+
+function draw_map() {
+    for (i = 0 - Border; i < Max_l + Border; i++) {
+        for (j = 0 - Border; j < Max_x + Border; j++) {
+            if (occupied(i, j) == 1) printf("#")
+            else printf(".")
+        }
+
+        print ""
+    }
+}
+
+function vertical_tripled_free(y, x) {
+    if (\
+        occupied(y - 1, x) == 0 && occupied(y, x) == 0 &&
+        occupied(y + 1, x) == 0\
+    ) return 1
+
+    return 0
+}
+
+function horizontal_tripled_free(y, x) {
+    if (\
+        occupied(y, x - 1) == 0 && occupied(y, x) == 0 &&
+        occupied(y, x + 1) == 0\
+    ) return 1
+
+    return 0
+}
+
+function tripled_free(direction, y, x) {
+    if (direction == "N" || direction == "S") {
+        return horizontal_tripled_free(y, x)
+    }
+    else if (direction == "W" || direction == "E") {
+        return vertical_tripled_free(y, x)
+    }
+    else { print "ERROR" }
+}
+
+function next_ind(direction, identifier) {
+    if (direction == "N" || direction == "S") { return map_x[identifier] }
+    else if (direction == "W") { return map_x[identifier] - 1 }
+    else if (direction == "E") { return map_x[identifier] + 1 }
+    else { print "Error" }
+}
+
+function next_line(direction, identifier) {
+    if (direction == "W" || direction == "E") { return map_line[identifier] }
+    else if (direction == "N") { return map_line[identifier] - 1 }
+    else if (direction == "S") { return map_line[identifier] + 1 }
+    else { print "Error" }
+}
+
+function try_move(direction, identifier) {
+    #print\
+    #    "trying move " direction " for " map_line[identifier] " "\
+    #        map_x[identifier]\
+    #        " "\
+    #        identifier
+    NL = next_line(direction, identifier)
+    NI = next_ind(direction, identifier)
+
+    if (tripled_free(direction, NL, NI)) {
+        #print "can go " direction
+        candidates[NL][NI][candidate_cnt[NL][NI]++] = identifier
+        return 1
+    }
+    else { return 0 }
+}
+
+function occupied(y, x) {
+    if (!(y in map) || !(x in map[y]) || map[y][x] == ".") return 0
+
+    return 1
+}
+
+function has_neighbor(identifier, y, x) {
+    y = map_line[identifier]
+    x = map_x[identifier]
+
+    if (\
+        occupied(y - 1, x + 1) == 1 || occupied(y, x + 1) == 1 ||
+        occupied(y + 1, x + 1) == 1 ||
+        occupied(y - 1, x - 1) == 1 ||
+        occupied(y, x - 1) == 1 ||
+        occupied(y + 1, x - 1) == 1 ||
+        occupied(y - 1, x) == 1 ||
+        occupied(y + 1, x) == 1\
+    ) {
+        #print identifier " has has_neighbor "
+        return 1
+    }
+    else { return 0 }
+}
+
+function try_move_all() {
+    wants_to_move = 0
+
+    for (l in map) {
+        for (i in map[l]) {
+            if (occupied(l, i) == 1 && has_neighbor(map[l][i]) == 1) {
+                wants_to_move++
+
+                for (d = first_direction; d < first_direction + 4; d++) {
+                    dir = d % 4
+
+                    if (try_move(direction[dir], map[l][i]) == 1) break
+                }
+            }
+        }
+    }
+
+    return wants_to_move
+}
+
+function update_limits(l, i) {
+    l = int(l)
+    i = int(i)
+    #print "updating limits " l " " i
+    if (l < smallest_l) smallest_l = l
+
+    if (l > biggest_l) biggest_l = l
+
+    if (i < smallest_i) smallest_i = i
+
+    if (i > biggest_i) biggest_i = i
+
+    #print "................................"
+    #print "smallest_l" smallest_l
+    #print "biggest_l" biggest_l
+    #print "smallest_i" smallest_i
+    #print "biggest_i" biggest_i
+    #print "................................"
+}
+
+function try_complete_move(l, i) {
+    for (l in candidates) {
+        for (i in candidates[l]) {
+            if (candidate_cnt[l][i] == 1) {
+                map[l][i] = candidates[l][i][0]
+                map[map_line[candidates[l][i][0]]][\
+                    map_x[candidates[l][i][0]]\
+                ] = "."
+                map_line[candidates[l][i][0]] = l
+                map_x[candidates[l][i][0]] = i
+                update_limits(l, i)
+
+                #print\
+                #    "exactly one candidate at position " l " " i " has "\
+                #        candidate_cnt[l][i]\
+                #        " candiatades"
+            }
+            else {
+                #print\
+                #    "not exactly one candidate at position " l " " i " has "\
+                #        candidate_cnt[l][i]\
+                #        " candiatades"
+            }
+        }
+    }
+}
+
+function full_move() {
+    want_to_move = try_move_all()
+    # print want_to_move " elves want to move"
+
+    if (want_to_move == 0) return 1
+
+    try_complete_move()
+    delete candidates
+    delete candidate_cnt
+    #draw_map()
+    first_direction++
+    first_direction %= 4
+    return 0
+}
+
+function do_moves() {
+    for (k = 0; k < 25000; k++) {
+        # print "== End of Round " k + 1 " =="
+        done = full_move()
+        if (k + 1 == 10) {
+            # print "Total elf count " total_elf
+            width = biggest_i - smallest_i + 1
+            height = biggest_l - smallest_l + 1
+            # print "rectangle with is " width
+            # print "rectangle height is " height
+            print width * height - total_elf
+        }
+
+        if (done == 1) {
+            print k + 1
+            break
+        }
+    }
+}
+
+END {
+    # draw_map()
+    do_moves()
+}
