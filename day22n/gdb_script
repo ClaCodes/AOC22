@@ -1,0 +1,5 @@
+tui enable
+file a.out
+set confirm off
+b main
+r day22_ex
