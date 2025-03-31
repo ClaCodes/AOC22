@@ -1,0 +1,141 @@
+#!/usr/bin/awk -f
+BEGIN {
+    FS = ""
+    line = 0
+    L = -1
+    I = -1
+    R = 0
+}
+
+function print_map() {
+    for (l in map) {
+        for (f in map[l]) { printf(map[l][f]) }
+        print ""
+    }
+}
+
+function render_cursor() {
+    if (R == 0) { map[L][I] = ">" }
+    else if (R == 1) { map[L][I] = "v" }
+    else if (R == 2) { map[L][I] = "<" }
+    else if (R == 3) { map[L][I] = "^" }
+    else { print "ERROR ................................" }
+}
+
+!/[0-9]/ && !/^$/ {
+    if (MAXI < NF) MAXI = NF
+
+    for (i = 0; i < NF; i++) {
+        map[line][i] = $(i + 1)
+
+        if (L == -1 && $(i + 1) != "#") {
+            L = line
+            I = i
+        }
+    }
+
+    line++
+    MAXL = line
+}
+
+function fill_space() {
+    for (j = 0; j < MAXL; j++) {
+        for (i = 0; i < MAXI; i++) {
+            if (!(j in map) || !(i in map[j])) { map[j][i] = " " }
+        }
+    }
+}
+
+function rotate(direction) {
+    R += direction + 4
+    R %= 4
+}
+
+function warp_a() {
+    #print "warping |" map[NL][NI] "|" "  " NL "  " NI
+
+    while (map[NL][NI] == " ") { next_pos() }
+}
+
+function next_pos() {
+    if (R == 0) { NI++ }
+    else if (R == 1) { NL++ }
+    else if (R == 2) { NI-- }
+    else if (R == 3) { NL-- }
+    else { print "ERROR ................................" }
+
+    NL += MAXL
+    NL %= MAXL
+    NI += MAXI
+    NI %= MAXI
+}
+
+function print_pos(msg) { print msg ": NL=" NL " NI=" NI " R=" R }
+
+function move_one() {
+    NI = I
+    NL = L
+    #print_pos("pos before next ")
+    next_pos()
+    #print_pos("pos before warp ")
+    warp_a()
+    #print_pos("pos after warp ")
+
+    if (map[NL][NI] != "#") {
+        L = NL
+        I = NI
+        return 0
+    }
+    else if (map[NL][NI] == "#") { return 1 }
+    else {
+        print "ERROR ................................"
+        return -1
+    }
+}
+
+
+function move(amount) {
+    #print "moving by " amount " L=" L " I=" I " R=" R
+
+    for (j = amount; j > 0; j--) {
+        move_ws_possible = move_one()
+
+        if (move_ws_possible != 0) { break }
+
+        #render_cursor()
+    }
+
+    #print_map()
+}
+
+/[0-9]/ {
+    print "MAXL " MAXL
+    print "MAXI " MAXI
+    fill_space()
+    nr = ""
+
+    for (i = 0; i < NF; i++) {
+        c = $(i + 1)
+
+        if (c == "R") {
+            move(int(nr))
+            rotate(1)
+            nr = ""
+        }
+        else if (c == "L") {
+            move(int(nr))
+            rotate(-1)
+            nr = ""
+        }
+        else { nr = nr c }
+    }
+
+    if (nr != "") { move(int(nr)) }
+
+    print ""
+}
+
+END {
+    print "final position " L " " I " " R
+    print "password is " (L + 1) * 1000 + 4 * (I + 1) + R
+}

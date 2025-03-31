@@ -1,0 +1,379 @@
+#!/usr/bin/awk -f
+function draw_cube() {
+    print "       __________"
+    print "      / \\ . . . . \\"
+    print "     / . \\ . . . . \\"
+    print "    / . . \\ . . . . \\"
+    print "   / . . . \\ . . . . \\"
+    print "  | . . . . |---------|"
+    print "   \\ . . . / . . . . /"
+    print "    \\ . . / . . . . /"
+    print "     \\ . / . . . . /"
+    print "      \\ / . . . . /"
+    print "       '''''''''''"
+    printf("%x", 10)
+    print ""
+}
+function at_face(orientation, face, i, j)
+{
+    if(face==3){
+        if (orientation==0) return cube[2][0][i][j]
+        else if (orientation==1) return cube[2][0][3-j][i]
+        else if (orientation==2) return cube[2][0][3-i][3-j]
+        else if (orientation==3) return cube[2][0][j][3-i]
+    }
+    if(face==2){
+        if (orientation==0) return cube[0][0][i][j]
+        else if (orientation==1) return cube[0][0][j][3-i]
+        else if (orientation==2) return cube[0][0][3-i][3-j]
+        else if (orientation==3) return cube[0][0][3-j][i]
+    }
+
+    if (face==0 || face == 1){
+        return cube[1][(orientation+face)%4][i][j]
+    }
+}
+
+function draw_cube_1(orientation,f,g,h,k) {
+    for(i=0;i<4;i++){
+        for(j=0;j<4;j++){
+            f[i][j]=at_face(orientation,0,i,j)
+            h[i][j]=at_face(orientation,1,i,j)
+            g[i][j]=at_face(orientation,2,i,j)
+            k[i][j]=at_face(orientation,3,i,j)
+        }
+    }
+    print "orientation " orientation
+    s[1]=sprintf("       __________        |")
+    s[2]=sprintf("      / \\ %x %x %x %x \\      |",f[0][0],f[0][1],f[0][2],f[0][3])
+    s[3]=sprintf("     / %x \\ %x %x %x %x \\     |",g[0][3],f[1][0],f[1][1],f[1][2],f[1][3])
+    s[4]=sprintf("    / %x %x \\ %x %x %x %x \\    |",g[0][2],g[1][3],f[2][0],f[2][1],f[2][2],f[2][3])
+    s[5]=sprintf("   / %x %x %x \\ %x %x %x %x \\   |",g[0][1],g[1][2],g[2][3],f[3][0],f[3][1],f[3][2],f[3][3])
+    s[6]=sprintf("  | %x %x %x %x |---------|  |",g[0][0],g[1][1],g[2][2],g[3][3])
+    s[7]=sprintf("   \\ %x %x %x / %x %x %x %x /   |",g[1][0],g[2][1],g[3][2],h[0][0],h[0][1],h[0][2],h[0][3])
+    s[8]=sprintf("    \\ %x %x / %x %x %x %x /    |",g[2][0],g[3][1],h[1][0],h[1][1],h[1][2],h[1][3])
+    s[9]=sprintf("     \\ %x / %x %x %x %x /     |",g[3][0],h[2][0],h[2][1],h[2][2],h[2][3])
+    s[10]=sprintf("      \\ / %x %x %x %x /      |",h[3][0],h[3][1],h[3][2],h[3][3])
+    s[11]=sprintf("       '''''''''''       |")
+    s[1]=s[1] sprintf("       __________        |\n")
+    s[2]=s[2] sprintf("      / %x %x %x %x / \\      |\n",f[0][0],f[0][1],f[0][2],f[0][3])
+    s[3]=s[3] sprintf("     / %x %x %x %x / %x \\     |\n",f[1][0],f[1][1],f[1][2],f[1][3],k[0][0])
+    s[4]=s[4] sprintf("    / %x %x %x %x / %x %x \\    |\n",f[2][0],f[2][1],f[2][2],f[2][3],k[1][0],k[0][1])
+    s[5]=s[5] sprintf("   / %x %x %x %x / %x %x %x \\   |\n",f[3][0],f[3][1],f[3][2],f[3][3],k[2][0],k[1][1],k[0][2])
+    s[6]=s[6] sprintf("  |---------| %x %x %x %x |  |\n",k[3][0],k[2][1],k[1][2],k[0][3])
+    s[7]=s[7] sprintf("   \\ %x %x %x %x \\ %x %x %x /   |\n",h[0][0],h[0][1],h[0][2],h[0][3],k[3][1],k[2][2],k[1][3])
+    s[8]=s[8] sprintf("    \\ %x %x %x %x \\ %x %x /    |\n",h[1][0],h[1][1],h[1][2],h[1][3],k[3][2],k[2][3])
+    s[9]=s[9] sprintf("     \\ %x %x %x %x \\ %x /     |\n",h[2][0],h[2][1],h[2][2],h[2][3],k[3][3])
+    s[10]=s[10] sprintf("      \\ %x %x %x %x \\ /      |\n",h[3][0],h[3][1],h[3][2],h[3][3])
+    s[11]=s[11] sprintf("       '''''''''''       |\n")
+    for (si in s) printf s[si]
+}
+function draw_cube_2(orientation,f,g,h,k) {
+    for(i=0;i<4;i++){
+        for(j=0;j<4;j++){
+            f[i][j]=at_face(orientation,0,i,j)
+            h[i][j]=at_face(orientation,1,i,j)
+            g[i][j]=at_face(orientation,2,i,j)
+            k[i][j]=at_face(orientation,3,i,j)
+        }
+    }
+    print "orientation " orientation
+    s[1]=sprintf("       __________        |")
+    s[2]=sprintf("      / \\ %c %c %c %c \\      |",f[0][0],f[0][1],f[0][2],f[0][3])
+    s[3]=sprintf("     / %c \\ %c %c %c %c \\     |",g[0][3],f[1][0],f[1][1],f[1][2],f[1][3])
+    s[4]=sprintf("    / %c %c \\ %c %c %c %c \\    |",g[0][2],g[1][3],f[2][0],f[2][1],f[2][2],f[2][3])
+    s[5]=sprintf("   / %c %c %c \\ %c %c %c %c \\   |",g[0][1],g[1][2],g[2][3],f[3][0],f[3][1],f[3][2],f[3][3])
+    s[6]=sprintf("  | %c %c %c %c |---------|  |",g[0][0],g[1][1],g[2][2],g[3][3])
+    s[7]=sprintf("   \\ %c %c %c / %c %c %c %c /   |",g[1][0],g[2][1],g[3][2],h[0][0],h[0][1],h[0][2],h[0][3])
+    s[8]=sprintf("    \\ %c %c / %c %c %c %c /    |",g[2][0],g[3][1],h[1][0],h[1][1],h[1][2],h[1][3])
+    s[9]=sprintf("     \\ %c / %c %c %c %c /     |",g[3][0],h[2][0],h[2][1],h[2][2],h[2][3])
+    s[10]=sprintf("      \\ / %c %c %c %c /      |",h[3][0],h[3][1],h[3][2],h[3][3])
+    s[11]=sprintf("       '''''''''''       |")
+    s[1]=s[1] sprintf("       __________        |\n")
+    s[2]=s[2] sprintf("      / %c %c %c %c / \\      |\n",f[0][0],f[0][1],f[0][2],f[0][3])
+    s[3]=s[3] sprintf("     / %c %c %c %c / %c \\     |\n",f[1][0],f[1][1],f[1][2],f[1][3],k[0][0])
+    s[4]=s[4] sprintf("    / %c %c %c %c / %c %c \\    |\n",f[2][0],f[2][1],f[2][2],f[2][3],k[1][0],k[0][1])
+    s[5]=s[5] sprintf("   / %c %c %c %c / %c %c %c \\   |\n",f[3][0],f[3][1],f[3][2],f[3][3],k[2][0],k[1][1],k[0][2])
+    s[6]=s[6] sprintf("  |---------| %c %c %c %c |  |\n",k[3][0],k[2][1],k[1][2],k[0][3])
+    s[7]=s[7] sprintf("   \\ %c %c %c %c \\ %c %c %c /   |\n",h[0][0],h[0][1],h[0][2],h[0][3],k[3][1],k[2][2],k[1][3])
+    s[8]=s[8] sprintf("    \\ %c %c %c %c \\ %c %c /    |\n",h[1][0],h[1][1],h[1][2],h[1][3],k[3][2],k[2][3])
+    s[9]=s[9] sprintf("     \\ %c %c %c %c \\ %c /     |\n",h[2][0],h[2][1],h[2][2],h[2][3],k[3][3])
+    s[10]=s[10] sprintf("      \\ %c %c %c %c \\ /      |\n",h[3][0],h[3][1],h[3][2],h[3][3])
+    s[11]=s[11] sprintf("       '''''''''''       |\n")
+    for (si in s) printf s[si]
+}
+#function draw_cube_2(orientation,f,g,h,k,i,j) {
+#    for(i=0;i<4;i++){
+#        for(j=0;j<4;j++){
+#            f[i][j]=at_face(orientation,0,i,j)
+#            h[i][j]=at_face(orientation,1,i,j)
+#            g[i][j]=at_face(orientation,2,i,j)
+#            k[i][j]=at_face(orientation,3,i,j)
+#        }
+#    }
+#    print "orientation " orientation
+#    s[1]=sprintf("       __________        |")
+#    s[2]=sprintf("      / \\ %c %c %c %c \\      |",f[0][0],f[0][1],f[0][2],f[0][3])
+#    s[3]=sprintf("     / %c \\ %c %c %c %c \\     |",g[0][3],f[1][0],f[1][1],f[1][2],f[1][3])
+#    s[4]=sprintf("    / %c %c \\ %c %c %c %c \\    |",g[0][2],g[1][3],f[2][0],f[2][1],f[2][2],f[2][3])
+#    s[5]=sprintf("   / %c %c %c \\ %c %c %c %c \\   |",g[0][1],g[1][2],g[2][3],f[3][0],f[3][1],f[3][2],f[3][3])
+#    s[6]=sprintf("  | %c %c %c %c |---------|  |",g[0][0],g[1][1],g[2][2],g[3][3])
+#    s[7]=sprintf("   \\ %c %c %c / %c %c %c %c /   |",g[1][0],g[2][1],g[3][2],h[0][0],h[0][1],h[0][2],h[0][3])
+#    s[8]=sprintf("    \\ %c %c / %c %c %c %c /    |",g[2][0],g[3][1],h[1][0],h[1][1],h[1][2],h[1][3])
+#    s[9]=sprintf("     \\ %c / %c %c %c %c /     |",g[3][0],h[2][0],h[2][1],h[2][2],h[2][3])
+#    s[10]=sprintf("      \\ / %c %c %c %c /      |",h[3][0],h[3][1],h[3][2],h[3][3])
+#    s[11]=sprintf("       '''''''''''       |")
+#    s[1]=s[1] sprintf("       __________        |\n")
+#    s[2]=s[2] sprintf("      / %c %c %c %c / \\      |\n",f[0][0],f[0][1],f[0][2],f[0][3])
+#    s[3]=s[3] sprintf("     / %c %c %c %c / %c \\     |\n",f[1][0],f[1][1],f[1][2],f[1][3],k[3][0])
+#    s[4]=s[4] sprintf("    / %c %c %c %c / %c %c \\    |\n",f[2][0],f[2][1],f[2][2],f[2][3],k[3][1],k[2][0])
+#    s[5]=s[5] sprintf("   / %c %c %c %c / %c %c %c \\   |\n",f[3][0],f[3][1],f[3][2],f[3][3],k[3][2],k[2][1],k[1][0])
+#    s[6]=s[6] sprintf("  |---------| %c %c %c %c |  |\n",k[3][3],k[2][2],k[1][1],k[0][0])
+#    s[7]=s[7] sprintf("   \\ %c %c %c %c \\ %c %c %c /   |\n",h[0][0],h[0][1],h[0][2],h[0][3],k[2][3],k[1][2],k[0][1])
+#    s[8]=s[8] sprintf("    \\ %c %c %c %c \\ %c %c /    |\n",h[1][0],h[1][1],h[1][2],h[1][3],k[1][3],k[0][2])
+#    s[9]=s[9] sprintf("     \\ %c %c %c %c \\ %c /     |\n",h[2][0],h[2][1],h[2][2],h[2][3],k[0][3])
+#    s[10]=s[10] sprintf("      \\ %c %c %c %c \\ /      |\n",h[3][0],h[3][1],h[3][2],h[3][3])
+#    s[11]=s[11] sprintf("       '''''''''''       |\n")
+#    for (si in s) printf s[si]
+#}
+#function init_cube_2(){
+#    for(x=0;x<4;x++){
+#        for(y=0;y<4;y++){
+#            cube[1][0][x][y]=x*4+y
+#            cube[1][1][x][y]=x*4+y
+#            cube[1][2][x][y]=x*4+y
+#            cube[1][3][x][y]=x*4+y
+#            cube[0][0][x][y]=x*4+y
+#            cube[2][0][x][y]=x*4+y
+#        }
+#    }
+#    cube[1][0][0][0]=1
+#    cube[1][1][0][0]=1
+#    cube[1][2][0][0]=1
+#    cube[1][3][0][0]=1
+#    cube[0][0][0][0]=0
+#    cube[2][0][0][0]=2
+#
+#    cube[1][0][0][1]=0
+#    cube[1][1][0][1]=1
+#    cube[1][2][0][1]=2
+#    cube[1][3][0][1]=3
+#    cube[0][0][0][1]=0
+#    cube[2][0][0][1]=0
+#}
+#function init_cube(){
+#    for(face=0;face<6;face++){
+#        for(x=0;x<4;x++){
+#            for(y=0;y<4;y++){
+#                cube[face][x][y]=x*4+y
+#            }
+#        }
+#        cube[face][0][0]=face
+#    }
+#}
+function init_cube_faces(i,j){
+    for (j = 0; j < MAXL; j++) {
+        for (i = 0; i < MAXI; i++) {
+            if(map[j][i]!=" "){
+                f = int(i/4)
+                b = int(j/4)
+                cube_face[b][f][j%4][i%4]=map[j][i]
+            }
+        }
+    }
+}
+
+function draw_faces_onto_cube(f,b,l,i){
+    for(b in cube_face){
+        for(f in cube_face[b]){
+            for(l in cube_face[b][f]){
+                for(i in cube_face[b][f][l]){
+                    cube[f][b][l][i]=sprintf("%c",cube_face[b][f][l][i])
+                }
+            }
+        }
+    }
+}
+function print_cube_faces(){
+    for(b in cube_face){
+        title = ""
+        for(f=0;f<6;f++){
+            if(f in cube_face[b]){
+                title = title sprintf("%-9s","face "f " " b)
+                for(l in cube_face[b][f]){
+                    temp_str = ""
+                    for(i in cube_face[b][f][l]){
+                        temp_str = temp_str cube_face[b][f][l][i]
+                    }
+                    lines_to_print[l] = lines_to_print[l] sprintf("%-9s", temp_str)
+                }
+            }else{
+                title = title sprintf("%-9s","")
+                for (l=0;l<4;l++){
+                    lines_to_print[l] = lines_to_print[l] sprintf("%-9s", "")
+                }
+            }
+        }
+        print title
+        for (l in lines_to_print){
+            print lines_to_print[l]
+        }
+        delete lines_to_print
+    }
+}
+
+BEGIN {
+    FS = ""
+    line = 0
+    L = -1
+    I = -1
+    R = 0
+#    init_cube_2()
+#    for(u=0;u<4;u++){
+#        draw_cube_1(u)
+#    }
+}
+
+function print_map() {
+    for (l = 0; l < MAXL; l++) {
+        for (f = 0; f < MAXI; f++) {
+            printf(map[l][f]) 
+        }
+        print ""
+    }
+}
+
+function render_cursor() {
+    if (R == 0) { map[L][I] = ">" }
+    else if (R == 1) { map[L][I] = "v" }
+    else if (R == 2) { map[L][I] = "<" }
+    else if (R == 3) { map[L][I] = "^" }
+    else { print "ERROR ................................" }
+}
+
+!/[0-9]/ && !/^$/ {
+    if (MAXI < NF) MAXI = NF
+
+    for (i = 0; i < NF; i++) {
+        map[line][i] = $(i + 1)
+
+        if (L == -1 && $(i + 1) != "#") {
+            L = line
+            I = i
+        }
+    }
+
+    line++
+    MAXL = line
+}
+
+function fill_space() {
+    for (j = 0; j < MAXL; j++) {
+        for (i = 0; i < MAXI; i++) {
+            if (!(j in map) || !(i in map[j])) { map[j][i] = " " }
+        }
+    }
+}
+
+function rotate(direction) {
+    R += direction + 4
+    R %= 4
+}
+
+function warp_a() {
+    #print "warping |" map[NL][NI] "|" "  " NL "  " NI
+    while (map[NL][NI] == " ") { next_pos() }
+}
+
+function next_pos() {
+    if (R == 0) { NI++ }
+    else if (R == 1) { NL++ }
+    else if (R == 2) { NI-- }
+    else if (R == 3) { NL-- }
+    else { print "ERROR ................................" }
+
+    NL += MAXL
+    NL %= MAXL
+    NI += MAXI
+    NI %= MAXI
+}
+
+function print_pos(msg) { print msg ": NL=" NL " NI=" NI " R=" R }
+
+function move_one() {
+    NI = I
+    NL = L
+    #print_pos("pos before next ")
+    next_pos()
+    #print_pos("pos before warp ")
+    warp_a()
+    #print_pos("pos after warp ")
+    if (map[NL][NI] != "#") {
+        L = NL
+        I = NI
+        return 0
+    }
+    else if (map[NL][NI] == "#") { return 1 }
+    else {
+        print "ERROR ................................"
+        return -1
+    }
+}
+
+function move(amount,j,move_ws_possible) {
+    #print "moving by " amount " L=" L " I=" I " R=" R
+    for (j = amount; j > 0; j--) {
+        move_ws_possible = move_one()
+
+        if (move_ws_possible != 0) { break }
+
+        render_cursor()
+    }
+
+    #draw_cubes()
+    #print_map()
+}
+
+function draw_cubes(u){
+    init_cube_faces()
+    print_cube_faces()
+    #draw_faces_onto_cube()
+    #for(u=0;u<4;u++){
+    #    draw_cube_2(u)
+    #}
+}
+
+/[0-9]/ {
+    fill_space()
+    draw_cubes()
+    #print_map()
+    
+    print "MAXL " MAXL
+    print "MAXI " MAXI
+    nr = ""
+
+    for (i = 0; i < NF; i++) {
+        c = $(i + 1)
+
+        if (c == "R") {
+            move(int(nr))
+            rotate(1)
+            nr = ""
+        }
+        else if (c == "L") {
+            move(int(nr))
+            rotate(-1)
+            nr = ""
+        }
+        else { nr = nr c }
+    }
+
+    if (nr != "") { move(int(nr)) }
+
+    print ""
+}
+
+END {
+    print "final position " L " " I " " R
+    print "password is " (L + 1) * 1000 + 4 * (I + 1) + R
+}
