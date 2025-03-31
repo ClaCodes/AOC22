@@ -1,0 +1,47 @@
+#!/usr/bin/awk -f
+BEGIN {
+    decs["2"] = 2
+    decs["1"] = 1
+    decs["0"] = 0
+    decs["-"] = -1
+    decs["="] = -2
+    snafus[2] = "2"
+    snafus[1] = "1"
+    snafus[0] = "0"
+    snafus[-1] = "-"
+    snafus[-2] = "="
+}
+
+function snafu_to_dec(snafu) {
+    d = 0
+    split(snafu, chars, "")
+
+    for (c = length(snafu); c > 0; c--) {
+        d += decs[chars[c]] * (5 ** (length(snafu) - c))
+    }
+
+    return d
+}
+
+function dec_to_snafu_single(dec) {
+    str = snafus[int((dec + 2) % 5) - 2] str
+    if (dec > 2) dec_to_snafu_single(int((dec + 2) / 5))
+}
+
+function dec_to_snafu(dec) {
+    str = ""
+    dec_to_snafu_single(dec)
+    return str
+}
+
+{
+    str = ""
+    dec = snafu_to_dec($0)
+    sum+=dec
+    back = dec_to_snafu(dec)
+    sum_snafu = dec_to_snafu(sum)
+    # printf("%11s %11s %11s sum=%s , %s", $0, back, dec,sum, sum_snafu )
+    # print ""
+}
+
+END { print dec_to_snafu(sum) }
