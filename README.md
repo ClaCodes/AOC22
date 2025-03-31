@@ -21,3 +21,8 @@ averaged over 10 runs (only rough estimate).
 |  15 |      10.78 ms |
 |  16 | 174’995.86 ms |
 |  17 |     143.48 ms |
+
+
+learnings:
+-local variables
+-attempt to use array in scalar context
